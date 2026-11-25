@@ -76,12 +76,16 @@ devtmp_init(){ DEVTMP=$(adbq '[ -d /tmp ] && echo /tmp || echo /data/local/tmp' 
 # ---------- sgdisk (recovery has none: use the bundle pulled from the phone) ----------
 SG=
 setup_sgdisk(){
+  local f k
+  # right after the recovery comes up /system and /tmp may not be ready yet: wait up to ~30 s
+  for k in $(seq 1 15); do adbq 'ls /system/bin/dd >/dev/null 2>&1 && [ -w /tmp -o -w /data/local/tmp ] && echo ready' | grep -q ready && break; sleep 2; done
   [ -n "$DEVTMP" ] || devtmp_init
-  if adbq 'which sgdisk' | grep -q sgdisk; then SG=sgdisk; return 0; fi
-  local f; for f in sgdisk libext2_uuid.so libc++.so; do [ -f "$SGB/$f" ] || die "missing $SGB/$f. Run scripts/pull_sgdisk.sh once while the phone is booted in Android."; done
-  [ -n "$DEVTMP" ] || devtmp_init
+  for k in 1 2 3 4 5; do adbq 'which sgdisk' | grep -q sgdisk && { SG=sgdisk; return 0; }; [ $k -lt 5 ] && sleep 2; done
+  for f in sgdisk libext2_uuid.so libc++.so; do [ -f "$SGB/$f" ] || die "missing $SGB/$f. Run scripts/pull_sgdisk.sh once while the phone is booted in Android."; done
   adbq "mkdir -p $DEVTMP/sgb" >/dev/null
-  for f in sgdisk libext2_uuid.so libc++.so; do timeout 60 "$ADB" push "$(winpath "$SGB/$f")" $DEVTMP/sgb/$f >/dev/null 2>&1 || die "adb push of $f failed (is $SGB a real folder, not a symlink / synced cloud folder?)"; done
+  for f in sgdisk libext2_uuid.so libc++.so; do
+    for k in 1 2 3; do timeout 60 "$ADB" push "$(winpath "$SGB/$f")" $DEVTMP/sgb/$f >/dev/null 2>&1 && break; [ $k = 3 ] && die "adb push of $f failed 3 times (is $SGB a real folder, not a symlink / synced cloud folder? is the phone still connected?)"; sleep 3; done
+  done
   adbq "chmod 755 $DEVTMP/sgb/sgdisk" >/dev/null
   SG="LD_LIBRARY_PATH=$DEVTMP/sgb:/system/lib64 $DEVTMP/sgb/sgdisk"
   adbq "$SG --version" | grep -qi sgdisk || die "sgdisk does not run on this phone/recovery (libraries differ). Pull a fresh bundle from THIS ROM with pull_sgdisk.sh."

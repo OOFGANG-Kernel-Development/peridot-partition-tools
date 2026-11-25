@@ -169,8 +169,7 @@ Tested on **one** POCO F6 (peridot), 2026-11-25, factory engineering ROM `FACTOR
 - real `--execute` runs on earlier versions of the scripts: resize 8.5 -> 12 GiB (Android booted, `lpdump` showed the new sizes), restore to the original table + factory `super` (Android booted), and resize 8.5 -> 12 GiB again.
   Found and fixed on the way: the recovery flag in `misc` (phone kept returning to recovery), and a WSL-symlink problem with Windows adb.
 - the image engine (`lp_resize.py`) was cross-checked against Android's own `lpdump` and also built a 12 GiB `super` from the retail HyperOS `OS3.0.303.0.WNPINXM` ROM.
-- **This version (v2: ROM analysis, matching, `--reflash-only`, new checks and docs) is new**: the parts that need a phone (`part_resize.sh` normal mode, `--reflash-only`, `part_restore.sh`, `part_backup.sh`) have not all been re-run since the rewrite.
-  See the table in [docs/TESTING.md](docs/TESTING.md) for exactly what was and was not tested.
+- **v2 (ROM analysis, matching, `--reflash-only`, new checks, `su` root support) was run end to end on the phone** with the retail HyperOS ROM and a custom recovery: `part_backup.sh`, `part_resize.sh` (14 GiB, `--execute`), `part_restore.sh --execute --flash-factory`, and `part_resize.sh --reflash-only --execute`, each verified afterwards from the recovery with `lpdump` and `sgdisk`. Details and the bugs found on the way are in [docs/TESTING.md](docs/TESTING.md).
 - Custom recovery on the retail ROM: root + `sgdisk` + `lpdump` available; backup, dry runs and the refusal paths verified there (see TESTING.md).
 - Never tested: any other device, a retail ROM installed on the phone, Linux/macOS hosts.
 

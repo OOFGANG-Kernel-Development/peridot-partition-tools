@@ -85,7 +85,12 @@ if [ $REFLASH = 1 ]; then
   if ! fb_present; then
     s=$(adb_state)
     if [ "$s" = device ] || [ "$s" = recovery ]; then
-      if [ $EXEC = 1 ]; then echo "rebooting the phone to the bootloader..."; "$ADB" reboot bootloader; wait_fastboot 40 || die "no bootloader: hold Power + Volume-Down"
+      if [ $EXEC = 1 ]; then
+        if [ "$s" = recovery ]; then # recovery leaves a boot-recovery command in misc: clear it (needs root) or the phone returns to recovery after the flash
+          if adb_is_root; then adbq 'dd if=/dev/zero of=/dev/block/by-name/misc bs=2048 count=1 2>&1 | tail -1; sync' >/dev/null; ok "recovery flag cleared"
+          else warn "recovery has no root, so the recovery flag cannot be cleared: after the flash the phone may boot back into recovery; choose 'Reboot system' there"; fi
+        fi
+        echo "rebooting the phone to the bootloader..."; "$ADB" reboot bootloader; wait_fastboot 40 || die "no bootloader: hold Power + Volume-Down"
       else echo "(dry run: the phone is in adb mode; with --execute I would reboot it to the bootloader)"; fi
     elif [ $EXEC = 1 ]; then die "no phone found (adb or fastboot). Put it in the bootloader: Power + Volume-Down."; fi
   fi
