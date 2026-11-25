@@ -110,7 +110,7 @@ case "$st" in
 esac
 adb_is_root || { explain_no_root; die "no root adb"; }
 ok "root adb"
-prod=$(adbq 'getprop ro.product.device; getprop ro.build.product' | tr -d '\n ')
+prod=$(adbq 'getprop ro.product.device; getprop ro.build.product' | tr '\n' ' ' | sed 's/ *$//')
 if [ -n "$prod" ] && ! echo "$prod" | grep -qi peridot; then [ "${FORCE_OTHER_DEVICE:-0}" = 1 ] || die "this does not look like a peridot (got '$prod'). These scripts are written for peridot (SM8635) only."; warn "not a peridot, continuing because FORCE_OTHER_DEVICE=1"; else ok "device: ${prod:-peridot (recovery does not report it)}"; fi
 bat=$(adbq 'cat /sys/class/power_supply/battery/capacity' | tr -dc 0-9); if [ -n "$bat" ]; then [ "$bat" -ge 50 ] && ok "battery $bat %" || die "battery is $bat %: charge to at least 50 % first (a flash that stops halfway is dangerous)"; else warn "battery level unknown: make sure it is above 50 %"; fi
 DISKDEV=$(find_disk) || die "cannot find which disk holds 'super' (/dev/block/by-name/super)"; ok "'super' lives on $DISKDEV"
