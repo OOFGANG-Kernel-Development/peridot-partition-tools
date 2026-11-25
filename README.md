@@ -169,6 +169,7 @@ Tested on **one** POCO F6 (peridot), 2026-11-25, factory engineering ROM `FACTOR
 - the image engine (`lp_resize.py`) was cross-checked against Android's own `lpdump` and also built a 12 GiB `super` from the retail HyperOS `OS3.0.303.0.WNPINXM` ROM.
 - **This version (v2: ROM analysis, matching, `--reflash-only`, new checks and docs) is new**: the parts that need a phone (`part_resize.sh` normal mode, `--reflash-only`, `part_restore.sh`, `part_backup.sh`) have not all been re-run since the rewrite.
   See the table in [docs/TESTING.md](docs/TESTING.md) for exactly what was and was not tested.
+- Custom recovery on the retail ROM: root + `sgdisk` + `lpdump` available; backup, dry runs and the refusal paths verified there (see TESTING.md).
 - Never tested: any other device, a retail ROM installed on the phone, Linux/macOS hosts.
 
 ## More documentation
