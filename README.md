@@ -59,7 +59,7 @@ Two kinds of packages work, because they have the same structure and the same pa
 
 | | Factory / engineering images | Retail **Fastboot ROM** (`.tgz`) |
 |---|---|---|
-| Example (tested) | `peridot_factory_images_FACTORY-PERIDOT-24.4.17_14.0` (Android 14, userdebug) | `peridot_in_global_images_OS3.0.303.0.WNPINXM_16.0` (HyperOS 3.0 / Android 16, global) |
+| Example (tested) | `peridot_factory_images_FACTORY-PERIDOT-24.4.17_14.0` (Android 14, userdebug) | `peridot_in_global_images_OS3.0.303.0.WNPINXM_16.0` (retail HyperOS global build `OS3.0.303.0.WNPINXM`, package label "16.0") |
 | Contains | `images/super.img`, `userdata.img`, `rawprogram*.xml`, `patch*.xml`, `gpt_*.bin`, `flash_all.bat/.sh` | the same files |
 | `super` content | 14 partitions, **3.9 GiB** used | 16 partitions (adds `mi_ext_a`), **7.3 GiB** used |
 | Partition layout on `sda` | all 33 partitions identical in position and size; `super` = 8.5 GiB at sector 208896 | identical |
@@ -71,6 +71,10 @@ What that means for you:
 - **Everything the tool does to `super`/`userdata` works with both** (`rom_check.sh`, building the new `super`, flashing).
 - **Changing the partition table needs root adb in recovery** (we use Android's `sgdisk`). That is only available on an engineering/userdebug ROM or with a recovery that gives root adb.
   So: do the table change while the phone runs the engineering ROM, then switch to the retail ROM, then use `--reflash-only` (it needs only the bootloader). See [Switching to another ROM](#switching-to-another-rom).
+- **Measured on the retail HyperOS recovery** (`OS3.0.303.0.WNPINXM`): it gives an `adb shell`, but as the plain `shell` user (uid 2000) on a production build; `adb root` is refused ("cannot run as root in production builds"), the disk device nodes are root-only and there is no `su`. So **the table cannot be edited from a stock retail recovery**.
+- **Options for root in recovery on a retail ROM**: (a) a **custom recovery** that gives root adb (TWRP/OrangeFox-style, built for peridot). On this phone the recovery lives in `vendor_boot`, so flashing one **replaces the vendor ramdisk**: use a build made for your ROM version and **keep the ROM's own `vendor_boot.img`** (it is in the ROM folder) to flash back if Android no longer boots;
+  (b) Magisk/KernelSU root in Android (`su` is supported: run with `--allow-android`, less safe); (c) the engineering ROM's recovery.
+  A custom recovery may not ship `sgdisk`; the tool then pushes the one you pulled with `pull_sgdisk.sh`.
 - The ROM must be **complete**: `super.img` (a single Android sparse or raw image) and `userdata.img`. A ROM whose super is split into pieces (`super.img_sparsechunk.N`) is detected and refused.
 
 ## Quick start
@@ -144,7 +148,7 @@ If the table is still the small original one and you only have a retail ROM (no 
 
 The tool computes it for you: `rom_check.sh` / `lp_resize.py check` print, for **your** ROM,
 what each slot uses, how much the image holds, the minimum possible size and the suggestion (`ROM + 30 %`, rounded up to whole GiB, never below today's size).
-Examples from the two tested ROMs: engineering ROM uses 3.9 GiB (suggest 9 GiB); HyperOS 3.0 uses 7.3 GiB (suggest 10 GiB).
+Examples from the two tested ROMs: engineering ROM uses 3.9 GiB (suggest 9 GiB); HyperOS `OS3.0.303.0.WNPINXM` uses 7.3 GiB (suggest 10 GiB).
 Remember the extra space is taken from `userdata`. On a Virtual A/B phone (this one) only slot `_a` holds data; slot `_b` is empty, OTA updates stage their data in `userdata`.
 
 ## Limits and what is checked
@@ -162,7 +166,7 @@ Tested on **one** POCO F6 (peridot), 2026-11-25, factory engineering ROM `FACTOR
 
 - real `--execute` runs on earlier versions of the scripts: resize 8.5 -> 12 GiB (Android booted, `lpdump` showed the new sizes), restore to the original table + factory `super` (Android booted), and resize 8.5 -> 12 GiB again.
   Found and fixed on the way: the recovery flag in `misc` (phone kept returning to recovery), and a WSL-symlink problem with Windows adb.
-- the image engine (`lp_resize.py`) was cross-checked against Android's own `lpdump` and also built a 12 GiB `super` from the retail HyperOS 3.0 ROM.
+- the image engine (`lp_resize.py`) was cross-checked against Android's own `lpdump` and also built a 12 GiB `super` from the retail HyperOS `OS3.0.303.0.WNPINXM` ROM.
 - **This version (v2: ROM analysis, matching, `--reflash-only`, new checks and docs) is new**: the parts that need a phone (`part_resize.sh` normal mode, `--reflash-only`, `part_restore.sh`, `part_backup.sh`) have not all been re-run since the rewrite.
   See the table in [docs/TESTING.md](docs/TESTING.md) for exactly what was and was not tested.
 - Never tested: any other device, a retail ROM installed on the phone, Linux/macOS hosts.

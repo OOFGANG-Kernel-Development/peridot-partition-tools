@@ -38,7 +38,12 @@ confirm(){ # confirm "what will happen" WORD
 }
 
 # ---------- adb / fastboot ----------
-adbq(){ timeout "${ADB_TIMEOUT:-120}" "$ADB" shell "$@" 2>&1 | tr -d '\r'; }
+# SU=1 when root comes from 'su' (Magisk/KernelSU style) instead of a root adb shell: then every command that needs root is wrapped in su -c
+SU=0
+_suwrap(){ local c; c=$(printf '%s' "$*" | sed "s/'/'\\\\''/g"); printf "su -c '%s'" "$c"; }
+adbq(){ if [ "$SU" = 1 ]; then timeout "${ADB_TIMEOUT:-120}" "$ADB" shell "$(_suwrap "$@")" 2>&1 | tr -d '\r'; else timeout "${ADB_TIMEOUT:-120}" "$ADB" shell "$@" 2>&1 | tr -d '\r'; fi; }
+# binary-safe output of a root command (disk dumps): adb_execout "dd if=... bs=4096 count=256 2>/dev/null"
+adb_execout(){ if [ "$SU" = 1 ]; then timeout "${ADB_TIMEOUT:-200}" "$ADB" exec-out "$(_suwrap "$@")"; else timeout "${ADB_TIMEOUT:-200}" "$ADB" exec-out "$@"; fi; }
 adb_state(){ timeout 10 "$ADB" get-state 2>/dev/null | tr -d '\r'; }
 fb_present(){ timeout 8 "$FB" devices 2>/dev/null | grep -q fastboot; }
 fb_var(){ timeout 15 "$FB" getvar "$1" 2>&1 | tr -d '\r' | grep -E "^$1:" | head -1 | sed "s/^$1: *//"; }
@@ -47,14 +52,18 @@ wait_adb_state(){ # wait_adb_state recovery|device [tries]
 wait_fastboot(){ local i; for i in $(seq 1 "${1:-40}"); do fb_present && return 0; sleep 3; done; return 1; }
 wait_android(){ local i st r; for i in $(seq 1 "${1:-150}"); do st=$(adb_state); r=$(timeout 8 "$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r'); [ "$st" = device ] && [ "$r" = 1 ] && return 0; sleep 6; done; return 1; }
 # 'adb shell' must give uid 0 for everything we do
-adb_is_root(){ [ "$(adbq id -u | tr -dc 0-9)" = 0 ]; }
+adb_is_root(){
+  SU=0; [ "$(adbq id -u | tr -dc 0-9)" = 0 ] && return 0
+  SU=1; [ "$(adbq id -u | tr -dc 0-9)" = 0 ] && return 0        # Magisk / KernelSU: 'su -c id' gives uid 0 (the phone may show a root-grant popup: allow it)
+  SU=0; return 1; }
 # stock recovery of a retail ROM often has no adb shell; say so clearly
-explain_no_root(){ cat <<'E'
-  The phone answers adb but 'adb shell' is not root (or there is no shell). This tool needs root adb to edit the partition table:
-    - the factory/engineering ROM (userdebug) gives root adb in Android AND in recovery;
-    - retail ROM recoveries usually only offer sideload. Use the engineering ROM, or a recovery that gives root adb.
+explain_no_root(){ cat <<'HELP'
+  The phone answers adb but there is no root (neither a root 'adb shell' nor a working 'su'). This tool needs root to edit the partition table:
+    - the factory/engineering ROM (userdebug) gives root adb in Android AND in recovery (the safest place);
+    - a retail ROM can be rooted with Magisk/KernelSU (patched init_boot): then 'su' works in Android and you must run with --allow-android (less safe than recovery);
+    - retail ROM recoveries usually only offer sideload.
   If the table is already the size you want and you only need to flash a ROM's super, use:  --reflash-only  (needs only the bootloader).
-E
+HELP
 }
 
 # writable scratch folder ON THE PHONE: recovery has /tmp, Android does not (use /data/local/tmp there)
@@ -115,5 +124,7 @@ E
 # ---------- host checks ----------
 free_gib(){ df -P --block-size=1G "$1" 2>/dev/null | awk 'NR==2{print $4}'; }
 need_cmds(){ local c; for c in "$@"; do command -v "$c" >/dev/null 2>&1 || die "'$c' is not installed (in WSL/Ubuntu: sudo apt install -y python3 coreutils)"; done; }
-check_tool_exists(){ # adb / fastboot present and runnable
-  local t=$1 name=$2; "$t" version >/dev/null 2>&1 || "$t" --version >/dev/null 2>&1 || die "$name not found or not runnable at '$t'. Install Android platform-tools (see README) or set ADB= / FB="; }
+check_tool_exists(){ # adb / fastboot present and runnable ('fastboot version' is NOT a command: it would wait for a device forever, so use --version and a timeout)
+  local t=$1 name=$2
+  if [ "$name" = adb ]; then timeout 20 "$t" version >/dev/null 2>&1; else timeout 20 "$t" --version >/dev/null 2>&1; fi \
+    || die "$name not found or not runnable at '$t'. Install Android platform-tools (see README) or set ADB= / FB="; }

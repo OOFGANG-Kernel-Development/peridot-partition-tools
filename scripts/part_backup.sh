@@ -14,11 +14,11 @@ LUNS=$(adbq 'ls /dev/block' | grep -E '^sd[a-z]$' | tr '\n' ' '); [ -n "$LUNS" ]
 say "backing up: $LUNS"
 for d in $LUNS; do
   bytes=$(adbq "blockdev --getsize64 /dev/block/$d" | tr -dc 0-9); [ -n "$bytes" ] || die "cannot read the size of $d"; sect=$(( bytes / 4096 ))   # computed here: the phone's shell has 32-bit arithmetic
-  adbq "$SG --backup=$DEVTMP/gpt_$d.sgdisk /dev/block/$d" >/dev/null
+  adbq "$SG --backup=$DEVTMP/gpt_$d.sgdisk /dev/block/$d" >/dev/null; adbq "chmod 644 $DEVTMP/gpt_$d.sgdisk" >/dev/null
   adbq "$SG --print /dev/block/$d" > print_$d.txt
   timeout 60 "$ADB" pull $DEVTMP/gpt_$d.sgdisk gpt_$d.sgdisk >/dev/null 2>&1
-  timeout 200 "$ADB" exec-out "dd if=/dev/block/$d bs=4096 count=256 2>/dev/null" > head_$d.bin
-  timeout 200 "$ADB" exec-out "dd if=/dev/block/$d bs=4096 skip=$((sect-256)) count=256 2>/dev/null" > tail_$d.bin
+  adb_execout "dd if=/dev/block/$d bs=4096 count=256 2>/dev/null" > head_$d.bin
+  adb_execout "dd if=/dev/block/$d bs=4096 skip=$((sect-256)) count=256 2>/dev/null" > tail_$d.bin
   # integrity: the saved table must be non-trivial and the dumps must be the size we asked for; the backup GPT header must be in the tail
   [ -f gpt_$d.sgdisk ] && [ "$(stat -c %s gpt_$d.sgdisk)" -gt 500 ] || die "backup of $d looks empty (gpt_$d.sgdisk)"
   [ "$(stat -c %s head_$d.bin)" -eq $((256*4096)) ] && [ "$(stat -c %s tail_$d.bin)" -eq $((256*4096)) ] || die "short dump for $d (cable/adb problem?)"

@@ -145,7 +145,7 @@ live=$(echo "$printout" | grep -E "^ +[0-9]+ " | awk '{print $1,$2,$3,$7}'); wan
 ok "backup $(basename "$BACKUP") exists in two places and equals the live table"
 
 say "4. does the ROM match the phone?"
-DHEAD=$(mktemp); timeout 120 "$ADB" exec-out 'dd if=/dev/block/by-name/super bs=4096 count=256 2>/dev/null' > "$DHEAD"
+DHEAD=$(mktemp); adb_execout 'dd if=/dev/block/by-name/super bs=4096 count=256 2>/dev/null' > "$DHEAD"
 python3 "$HERE/lp_resize.py" match "$DHEAD" "$ROM/super.img" | sed 's/^/    /'; mrc=${PIPESTATUS[0]}; rm -f "$DHEAD"
 if [ "$mrc" = 1 ]; then
   [ $ALLOW_MISMATCH = 1 ] || die "this ROM differs from the one installed. Only super/userdata would be replaced; the firmware and boot images would NOT match and the phone will not boot. Flash the whole ROM first with its own flash_all script (NOT the _lock one), then use --reflash-only. (Override: --allow-rom-mismatch)"
@@ -167,7 +167,7 @@ say "6. write the new partition table"
 adbq "$SG $NEWSG $DISKDEV" | tail -3; adbq sync >/dev/null; STAGE=table_written
 after=$(adbq "$SG --print $DISKDEV"); echo "$after" | grep -E " super| userdata"
 echo "$after" | grep -qE "^ +$SN +$SUPER_START +$SUPER_END " || die "the table read back is not what was intended. Do NOT reboot: run part_restore.sh --execute now."
-adbq "$SG --backup=$DEVTMP/gpt_sda_after.sgdisk $DISKDEV" >/dev/null; ( cd "$BACKUP" && timeout 30 "$ADB" pull $DEVTMP/gpt_sda_after.sgdisk "gpt_sda_after_${GIB}g.sgdisk" >/dev/null 2>&1 ); echo "$after" > "$BACKUP/print_sda_after_${GIB}g.txt"
+adbq "$SG --backup=$DEVTMP/gpt_sda_after.sgdisk $DISKDEV" >/dev/null; adbq "chmod 644 $DEVTMP/gpt_sda_after.sgdisk" >/dev/null; ( cd "$BACKUP" && timeout 30 "$ADB" pull $DEVTMP/gpt_sda_after.sgdisk "gpt_sda_after_${GIB}g.sgdisk" >/dev/null 2>&1 ); echo "$after" > "$BACKUP/print_sda_after_${GIB}g.txt"
 say "7. clear the recovery flag, bootloader, flash"
 # 'adb reboot recovery' leaves a boot-recovery command in misc; if it stays, every later boot returns to recovery
 adbq 'dd if=/dev/zero of=/dev/block/by-name/misc bs=2048 count=1 2>&1 | tail -1; sync' >/dev/null
