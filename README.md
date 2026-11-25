@@ -18,7 +18,10 @@ The tool looks at what your ROM's `super` really contains, suggests a safe size,
 > 7. Everything here is provided **as is, without warranty**. You are responsible for your device.
 > 8. **Always run every script without `--execute` first.** That is a dry run: it checks and shows the plan, and changes nothing.
 
+> **New to this? Start with [docs/BEGINNER_GUIDE.md](docs/BEGINNER_GUIDE.md)**: the words explained, what can go wrong, where you can safely stop, a go/no-go checklist, and what to do if something fails. Read it **before** the steps below.
+
 ## Contents
+0. [Beginner guide (read first)](docs/BEGINNER_GUIDE.md)
 1. [What you need and what to download](#what-you-need-and-what-to-download)
 2. [Which ROM package? (factory images vs retail fastboot ROM)](#which-rom-package)
 3. [Quick start](#quick-start)
@@ -79,6 +82,8 @@ What that means for you:
 - The ROM must be **complete**: `super.img` (a single Android sparse or raw image) and `userdata.img`. A ROM whose super is split into pieces (`super.img_sparsechunk.N`) is detected and refused.
 
 ## Quick start
+
+**Before step 1, tick every box of the go/no-go checklist in [docs/BEGINNER_GUIDE.md](docs/BEGINNER_GUIDE.md#4-go--no-go-checklist-all-boxes-must-be-ticked).** After you type `ERASE` do not touch the phone, the cable, the PC or the terminal until the script prints `Done`; never press Ctrl+C then.
 
 All commands run in a **WSL terminal**, from the root of this repository. Replace the example paths with yours.
 
@@ -175,6 +180,7 @@ Tested on **one** POCO F6 (peridot), 2026-11-25, factory engineering ROM `FACTOR
 
 ## More documentation
 
+- [docs/BEGINNER_GUIDE.md](docs/BEGINNER_GUIDE.md) - **start here**: glossary, risks, points of no return, go/no-go checklist, what to do when it fails.
 - [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) - GPT, LUNs, `super`, LP metadata, why only the metadata changes, Virtual A/B.
 - [docs/RECOVERY_AND_TROUBLESHOOTING.md](docs/RECOVERY_AND_TROUBLESHOOTING.md) - when something goes wrong, restore paths, EDL.
 - [docs/PERIDOT_LAYOUT.md](docs/PERIDOT_LAYOUT.md) - the stock partition table and the two ROMs' `super` contents.

@@ -1,6 +1,6 @@
 # Recovery and troubleshooting
 
-> Read the warnings in the [README](../README.md) first. Everything below assumes you made a backup with `scripts/part_backup.sh` **before** changing anything.
+> Read the [beginner guide](BEGINNER_GUIDE.md) and the warnings in the [README](../README.md) first. Everything below assumes you made a backup with `scripts/part_backup.sh` **before** changing anything.
 
 ## Quick decision table
 
