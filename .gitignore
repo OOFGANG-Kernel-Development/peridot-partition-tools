@@ -1,0 +1,9 @@
+# never commit device data or images
+backups/
+peridot-partition-data/
+*.sgdisk
+head_*.bin
+tail_*.bin
+super*.img
+*.raw
+sgdisk_bundle/

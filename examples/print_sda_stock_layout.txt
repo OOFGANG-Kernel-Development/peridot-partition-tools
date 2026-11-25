@@ -1,0 +1,40 @@
+Disk /dev/block/sda: 61949952 sectors, 236.3 GiB
+Sector size (logical/physical): 4096/4096 bytes
+Partition table holds up to 32 entries
+Main partition table begins at sector 2 and ends at sector 2
+First usable sector is 6, last usable sector is 61949946
+Partitions will be aligned on 2-sector boundaries
+Total free space is 0 sectors (0 bytes)
+
+Number  Start (sector)    End (sector)  Size       Code  Name
+   1               6               7   8.0 KiB     FFFF  switch
+   2               8              15   32.0 KiB    A02C  ssd
+   3              16              23   32.0 KiB    FFFF  dbg
+   4              24              31   32.0 KiB    FFFF  bk01
+   5              32              63   128.0 KiB   FFFF  bk02
+   6              64             127   256.0 KiB   FFFF  bk03
+   7             128             255   512.0 KiB   FFFF  bk04
+   8             256             383   512.0 KiB   A02D  keystore
+   9             384             511   512.0 KiB   FFFF  frp
+  10             512             767   1024.0 KiB  FFFF  countrycode_a
+  11             768            1023   1024.0 KiB  FFFF  countrycode_b
+  12            1024            2047   4.0 MiB     A01F  misc
+  13            2048            4095   8.0 MiB     FFFF  bk05
+  14            4096            6143   8.0 MiB     FFFF  logfs
+  15            6144            8191   8.0 MiB     FFFF  ffu
+  16            8192            8193   8.0 KiB     A021  devinfo
+  17            8194            8225   128.0 KiB   FFFF  vbmeta_system_a
+  18            8226            8257   128.0 KiB   FFFF  vbmeta_system_b
+  19            8258            9281   4.0 MiB     FFFF  mem
+  20            9282           16383   27.7 MiB    FFFF  bk06
+  21           16384           32767   64.0 MiB    FFFF  metadata
+  22           32768           34303   6.0 MiB     FFFF  bk07
+  23           34304           42495   32.0 MiB    FFFF  mtdblk
+  24           42496           81919   154.0 MiB   FFFF  blackbox
+  25           81920           86015   16.0 MiB    FFFF  oops
+  26           86016          162815   300.0 MiB   A01C  rawdump
+  27          162816          167935   20.0 MiB    FFFF  opconfig
+  28          167936          176127   32.0 MiB    FFFF  mbnconfig
+  29          176128          208895   128.0 MiB   A039  rescue
+  30          208896         2437119   8.5 GiB     FFFF  super
+  31         2437120        61949946   227.0 GiB   A03A  userdata
