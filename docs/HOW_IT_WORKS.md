@@ -44,31 +44,50 @@ Only three things must change inside the LP metadata so that Android understands
 The system/vendor/... data inside the image is not touched, byte for byte. The script verifies every checksum again after writing, and you can cross-check with Android's own
 `lpdump`: in our test the output for the original and the resized image differed **only** in the three size lines.
 
-## 4. What `part_resize.sh --execute` does, step by step
+## 4. How the tool decides what to do (it reads, then acts)
 
-1. Checks the preconditions: a backup exists (two copies), the factory `super.img` exists, the phone is in **recovery**, it is a peridot, the sector size is 4096.
-2. Compares the **live** partition table with your backup. If anything differs, it stops.
-3. Reads the real positions of `super` and `userdata` and their GUIDs from the live table (by name, nothing is hard-coded), checks that `userdata` starts right after `super`.
-4. Builds the resized `super` image and **dry-runs** the new table with `sgdisk --pretend` (it never writes in this step).
-5. Writes the new GPT with Android's `sgdisk` (in recovery, so nothing from `super`/`userdata` is mounted), reads the table back and checks it.
-6. Reboots to the **bootloader** and flashes: `super` (new image), erases `metadata`, flashes `userdata` (the factory one, small, Android grows it on first boot).
-7. Boots and prints `lpdump`, `sgdisk --print` and `df /data` so you can see the new sizes.
+`scripts/lp_resize.py check` opens the ROM's `super.img` (sparse or raw) and decodes the LP metadata completely: the block device, the groups and **every partition with its extents**. From that it knows
+what the ROM really needs and prints it, for example for the two tested ROMs:
 
-`userdata` is recreated because its start moved: whatever was on the old `userdata` no longer lines up with the new table, so the contents are lost. That is why a backup of **your files** is needed before anything else.
-The earlier partition-table backup does **not** contain your files; it only contains the table.
+| ROM | partitions in `super` | used by slot `_a` | free in its own 8.5 GiB | suggested size |
+|---|---|---|---|---|
+| factory engineering ROM (Android 14) | 14 | 3.9 GiB | 4.6 GiB | 9 GiB |
+| retail HyperOS 3.0 global (Android 16) | 16 (adds `mi_ext_a`) | 7.3 GiB | 1.2 GiB | 10 GiB |
 
-## 5. Why recovery, why the real `sgdisk`
+The suggestion is `used + 30 %`, at least 1 GiB above what the partitions need, never below today's size, rounded up to a whole GiB. On a **Virtual A/B** phone like peridot only slot `_a` holds data (the `_b` partitions are 0 bytes);
+OTA updates keep their snapshot data in `userdata`, so `super` does not have to be twice the ROM.
+
+## 5. What `part_resize.sh --execute` does, step by step
+
+1. **ROM package**: `super.img` and `userdata.img` present, not a split image, `lp_resize.py check` says OK for the chosen size, enough disk space on the PC and in the Windows staging folder.
+2. **Phone**: in recovery, root adb works, it is a peridot, battery at least 50 %, `super` found on its disk, sector size 4096.
+3. **Live table**: `super` and `userdata` are read by *name* (positions, GUIDs, type codes); `userdata` must start directly after `super`; the new size must be larger and leave at least 1 GiB for `userdata`.
+4. **Backup**: a backup exists in two places and equals the live table (otherwise: stop).
+5. **ROM match**: the first MiB of the phone's real `super` is read and compared with the ROM image (names and sizes of the non-`*_dlkm` partitions). A different ROM is refused, because only `super`/`userdata` are replaced and the firmware/boot images would not fit.
+6. **Plan**: `sgdisk --pretend` computes the new table; nothing is written. Without `--execute` the script ends here.
+7. You must **type `ERASE`**. Then the resized `super` image is built and verified (all 6 metadata copies, partition table unchanged), the new GPT is written and read back.
+8. The recovery flag in `misc` is cleared, the phone reboots to the bootloader. There: product must be peridot, anti-rollback must not be higher than the ROM's, then `super` is flashed, `metadata` erased, `userdata` flashed, the phone reboots.
+9. It waits for a **real Android boot** (adb state `device` and `sys.boot_completed=1`; recovery does not count) and prints `lpdump`, `df`.
+
+`userdata` is recreated because its start moved: the old contents no longer line up with the new table. The partition-table backup contains **no personal files**.
+
+### `--reflash-only` (bootloader only)
+
+When the table already has the size you want (for example after you changed ROM with its own `flash_all`), the tool skips the table: it asks the bootloader for `partition-size:super`, requires it to equal the requested size, builds the matching `super` for the new ROM and flashes it.
+It needs no adb and no recovery, which is why it works with retail ROMs.
+
+## 6. Why recovery, why the real `sgdisk`
 
 - In recovery nothing is mounted from `super` or `userdata`, so there is no running system that could be confused by a table change.
 - Android's own `sgdisk` is a well-tested tool that writes both the main and the backup GPT with correct CRCs. The scripts only give it the numbers.
 - Recovery images normally do not ship `sgdisk`, so `pull_sgdisk.sh` copies it (and `libext2_uuid.so`, `libc++.so`) from your phone's own system before the first run.
 
-## 6. What is **not** touched
+## 7. What is **not** touched
 
 - Bootloader chain (`xbl`, `abl`, `tz`, `hyp`, `aop`, ...): different LUNs, never written by these scripts.
 - All other partitions (`boot_a/b`, `vendor_boot_a/b`, `dtbo`, `vbmeta`, `persist`, `misc`, `metadata`, ...) keep their position and size: they all sit *before* `super`. Only `super` (grows) and `userdata` (starts later, becomes empty) change.
 - Calibration data in `persist` etc. stays as it is.
 
-## 7. Limits
+## 8. Limits
 
 See the README: growing only, stock neighbour layout only, 4096-byte sectors only, peridot only.

@@ -1,146 +1,177 @@
 # peridot-partition-tools
 
-Back up, resize and restore the partition layout of the **Xiaomi POCO F6 / Redmi Turbo 3 "peridot" (Snapdragon 8s Gen 3, SM8635)**:
-make the `super` partition bigger (taking the space from `userdata`), flash a matching `super` image, and go back to the original layout if anything goes wrong.
+Back up, **grow the `super` partition**, and restore the partition layout of the **Xiaomi POCO F6 / Redmi Turbo 3 "peridot" (Snapdragon 8s Gen 3, SM8635)**.
+The tool looks at what your ROM's `super` really contains, suggests a safe size, checks everything it can **before** it writes anything, and can always take you back to the original layout.
 
 > ## READ THIS FIRST - WARNINGS
 >
-> **This can permanently brick your phone.** A wrong partition table on a phone can leave it unable to boot and unable to reach the bootloader.
-> The recovery methods are limited (see [docs/RECOVERY_AND_TROUBLESHOOTING.md](docs/RECOVERY_AND_TROUBLESHOOTING.md)); on some devices the last-resort method (EDL) needs files and authorisation you may not have.
+> **This can permanently brick your phone.** A wrong partition table can leave a phone unable to boot *and* unable to reach the bootloader. The last-resort recovery (EDL) needs files and
+> authorisation you may not have (see [docs/RECOVERY_AND_TROUBLESHOOTING.md](docs/RECOVERY_AND_TROUBLESHOOTING.md)). Only do this on a phone you can afford to lose.
 >
-> 1. **ALL DATA ON THE PHONE IS ERASED** (photos, apps, accounts). `userdata` is moved and recreated empty. Copy anything you want to keep off the phone first.
-> 2. **Only for the POCO F6 / Redmi Turbo 3 `peridot`** with the layout shown in [docs/PERIDOT_LAYOUT.md](docs/PERIDOT_LAYOUT.md). The scripts refuse other devices. Do **not** try them on another model.
-> 3. **Make and keep a backup first** (`part_backup.sh`). Keep a copy **outside** the phone and outside the folder you are working in. Without it you cannot go back.
-> 4. You need an **unlocked bootloader** and a **factory (fastboot) ROM matching the ROM you are on**. Do not mix ROM versions.
-> 5. **Never unplug the cable, power the phone off, or close the terminal** while a step says it is writing or flashing. Charge the phone to at least 60 % first.
-> 6. Everything here is provided **as is, with no warranty**. You are responsible for your device. Nothing in this repository has been reviewed by Xiaomi or Qualcomm.
-> 7. If you do not understand a step, **stop and ask** before running it. Run every script **without `--execute`** first: that is a dry run which changes nothing.
+> 1. **ALL DATA ON THE PHONE IS ERASED.** `userdata` is moved and recreated empty. Copy your files off the phone first.
+> 2. **Only for the POCO F6 / Redmi Turbo 3 `peridot`.** The scripts refuse other devices. Never run them on another model. It is meant for every storage variant of the phone (128/256/512 GB class): the scripts read the real layout from your phone, but only a 256 GB-class phone has been tested. **A backup is tied to the one phone (and disk size) it was taken from: never restore it onto another phone.**
+> 3. **Make a backup first and keep a copy somewhere else** (`part_backup.sh`). Without it you cannot go back.
+> 4. You need an **unlocked bootloader**. **Never relock it** and **never use a ROM's `flash_all_lock.*` script** with a custom/engineering setup: that can brick the phone.
+> 5. The ROM you give the tool must be **the ROM that is installed on the phone** (same version). The tool only replaces `super`/`metadata`/`userdata`; it does not touch firmware or boot images.
+>    To change to a different ROM version, flash that whole ROM with its own `flash_all` first (see "Switching to another ROM" below).
+> 6. **Charge the phone above 60 %. Never unplug the cable, power off, or close the terminal** while a step is writing or flashing.
+> 7. Everything here is provided **as is, without warranty**. You are responsible for your device.
+> 8. **Always run every script without `--execute` first.** That is a dry run: it checks and shows the plan, and changes nothing.
 
-## What it does
+## Contents
+1. [What you need and what to download](#what-you-need-and-what-to-download)
+2. [Which ROM package? (factory images vs retail fastboot ROM)](#which-rom-package)
+3. [Quick start](#quick-start)
+4. [What every script does](#what-every-script-does)
+5. [Switching to another ROM (for example engineering ROM to HyperOS)](#switching-to-another-rom)
+6. [Choosing the size](#choosing-the-size)
+7. [Limits and what is checked](#limits-and-what-is-checked)
+8. [Status / tested on](#status--tested-on)
+9. [More documentation](#more-documentation)
 
-| Script | What it does | Changes the phone? |
+## What you need and what to download
+
+| # | What | Why | Where / how |
+|---|---|---|---|
+| 1 | A **Windows 10/11 PC** (Linux and macOS also work, see note) with about **30 GB free** on a normal local drive | ROM (7-10 GB) + generated image (7-10 GB) + a Windows copy of it | Do **not** use a OneDrive/Dropbox/Google-Drive synced folder for the working data |
+| 2 | **WSL 2 with Ubuntu** (Windows only) | the scripts are bash scripts | Open PowerShell as administrator: `wsl --install -d Ubuntu`, reboot, create your Linux user. Guide: <https://learn.microsoft.com/windows/wsl/install> |
+| 3 | In Ubuntu: `python3`, `coreutils`, `git` | the scripts and the image patcher | `sudo apt update && sudo apt install -y python3 coreutils git` |
+| 4 | **Android SDK Platform-Tools** (`adb.exe`, `fastboot.exe`) | talk to the phone | Download from <https://developer.android.com/tools/releases/platform-tools>, unzip to `C:\platform-tools` (other place: set `ADB=` and `FB=`) |
+| 5 | **USB drivers** | Windows must see the phone in Android, recovery **and** fastboot mode | Usually automatic. If `fastboot devices` stays empty, install the Google USB driver <https://developer.android.com/studio/run/win-usb> or Xiaomi's driver. Use a good cable and a USB 2.0 port |
+| 6 | The **phone**: unlocked bootloader, **USB debugging** on, this PC authorised | adb | Settings > About > tap MIUI/OS version 7 times > Developer options > USB debugging. Unlocking needs the official Xiaomi unlock process (account binding + waiting period) |
+| 7 | A **ROM package for your exact installed version** (see next section) | its `super.img` is the basis of the new `super` | Factory/engineering images, or Xiaomi's official **"Fastboot ROM"** `.tgz` for `peridot` (also on trusted firmware mirrors such as <https://xiaomifirmwareupdater.com>; check any checksum they publish) |
+| 8 | **7-Zip** (only if your ROM is a `.tgz`) | a `.tgz` must be unpacked **twice**: `.tgz` -> `.tar` -> folder | <https://www.7-zip.org/> (or in Ubuntu: `tar -xzf rom.tgz`) |
+| 9 | **This repository** | the scripts | `git clone` it (it is private: you need access) or download the ZIP and unpack it inside WSL (e.g. into `~/peridot-partition-tools`) |
+| 10 | Recovery that gives **root adb** | the partition table is edited from recovery | The engineering/factory ROM's recovery does. A retail ROM's recovery usually only offers sideload: see "Which ROM package?" |
+
+*Linux/macOS users:* install `adb`/`fastboot` from your package manager; the scripts detect that they are not on WSL and use them directly (`WIN_STAGE` then defaults to `$PART_DATA/stage`). Only Windows+WSL was tested.
+
+Unpack your ROM into a short local path, for example `C:\roms\peridot_xyz\` (WSL sees it as `/mnt/c/roms/peridot_xyz/`). The folder you give to the tools is the one that contains **`super.img`** (usually named `images`).
+Check the download **before** you touch the phone:
+
+```bash
+bash scripts/rom_check.sh /mnt/c/roms/peridot_xyz     # no phone needed
+```
+
+## Which ROM package?
+
+Two kinds of packages work, because they have the same structure and the same partition layout (verified on two real packages):
+
+| | Factory / engineering images | Retail **Fastboot ROM** (`.tgz`) |
 |---|---|---|
-| `scripts/pull_sgdisk.sh` | Copies Android's own `sgdisk` tool (and 2 libraries) from your booted phone to your PC so it can be used in recovery | no |
-| `scripts/part_backup.sh` | Saves the partition tables of all 6 storage units (LUNs) of the phone, with checksums, in two places | no (read only) |
-| `scripts/part_resize.sh` | Dry run by default. With `--execute`: writes a new partition table (bigger `super`, smaller `userdata`), flashes a matching `super`, erases `metadata`, flashes `userdata`, boots, verifies | **yes** |
-| `scripts/part_restore.sh` | Dry run by default. With `--execute`: puts the original partition table back from your backup. With `--flash-factory`: also re-flashes the factory `super`/`userdata` so the phone boots again | **yes** |
-| `scripts/lp_resize.py` | Builds the bigger `super` image from the factory one (patches only the dynamic-partition metadata) and verifies it. Used by `part_resize.sh`; also usable on its own (`info`, `resize`, `verify`) | no (works on files) |
+| Example (tested) | `peridot_factory_images_FACTORY-PERIDOT-24.4.17_14.0` (Android 14, userdebug) | `peridot_in_global_images_OS3.0.303.0.WNPINXM_16.0` (HyperOS 3.0 / Android 16, global) |
+| Contains | `images/super.img`, `userdata.img`, `rawprogram*.xml`, `patch*.xml`, `gpt_*.bin`, `flash_all.bat/.sh` | the same files |
+| `super` content | 14 partitions, **3.9 GiB** used | 16 partitions (adds `mi_ext_a`), **7.3 GiB** used |
+| Partition layout on `sda` | all 33 partitions identical in position and size; `super` = 8.5 GiB at sector 208896 | identical |
+| Anti-rollback value | 1 | 1 |
+| Root adb in Android and recovery | **yes** | no (user build) |
 
-How it works, in plain words: [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md).
+What that means for you:
 
-## Why would anyone do this?
+- **Everything the tool does to `super`/`userdata` works with both** (`rom_check.sh`, building the new `super`, flashing).
+- **Changing the partition table needs root adb in recovery** (we use Android's `sgdisk`). That is only available on an engineering/userdebug ROM or with a recovery that gives root adb.
+  So: do the table change while the phone runs the engineering ROM, then switch to the retail ROM, then use `--reflash-only` (it needs only the bootloader). See [Switching to another ROM](#switching-to-another-rom).
+- The ROM must be **complete**: `super.img` (a single Android sparse or raw image) and `userdata.img`. A ROM whose super is split into pieces (`super.img_sparsechunk.N`) is detected and refused.
 
-The stock `super` partition is 8.5 GiB and is nearly full of the system, vendor, product, ... images. A custom ROM, a bigger GSI, or extra dynamic partitions may not fit.
-Android cannot grow `super` by itself, and the space has to come from the neighbour, `userdata`.
+## Quick start
 
-## What you need
-
-- A Windows PC with **WSL2** (Ubuntu). The phone's USB is used through Windows `adb.exe`/`fastboot.exe`, the scripts run in WSL.
-- **Android platform-tools** (adb + fastboot) at `C:\platform-tools` (override with `ADB=`/`FB=` environment variables).
-- In WSL: `bash`, `python3`, `coreutils` (the scripts use `wslpath`, `sha256sum`, `dd`).
-- The phone: unlocked bootloader, **USB debugging on**, and a ROM where `adb` can run as root (the factory **eng/userdebug** ROM works; locked-down user builds usually do not).
-- The **factory fastboot ROM** for your exact version, unpacked: the folder called `images` that contains `super.img`, `userdata.img` and the `rawprogram*.xml` files.
-- A free-space buffer on the PC: about 10 GB for the generated image.
-
-## Step by step
-
-All commands run in a WSL terminal, from the root of this repository. Replace the example paths with yours.
-
-### 0. Prepare (once)
+All commands run in a **WSL terminal**, from the root of this repository. Replace the example paths with yours.
 
 ```bash
-export PART_DATA=$HOME/peridot-partition-data        # where backups/images are kept
-export FACTORY="/mnt/c/Users/<you>/Downloads/<factory-rom>/images"   # the folder with super.img
-adb devices                                          # the phone must be listed (use adb.exe from Windows if "adb" is not in WSL)
-bash scripts/pull_sgdisk.sh                          # phone booted in Android, USB debugging on, adb root
+export PART_DATA=$HOME/peridot-partition-data                 # where backups, logs and images are kept (a real local folder)
+export ROM=/mnt/c/roms/peridot_xyz                            # the ROM that is INSTALLED on the phone
 ```
 
-### 1. Back up (read only) - do not skip
+1. **Check the ROM** (no phone): `bash scripts/rom_check.sh "$ROM"` - shows what the `super` contains and a suggested size.
+2. **Get `sgdisk`** (once; phone booted in Android, USB debugging on): `bash scripts/pull_sgdisk.sh`.
+3. **Back up** (read only): `bash scripts/part_backup.sh` - then **copy the backup folder somewhere else** (another PC/cloud/USB).
+4. **Reboot to recovery**: `adb reboot recovery`; `adb get-state` must print `recovery`.
+5. **Dry run**: `bash scripts/part_resize.sh --factory "$ROM" --super-gib auto` - every line should be `OK`; it ends with `DRY RUN ONLY - nothing was changed`.
+6. **Do it** (erases everything, asks you to type `ERASE`): `bash scripts/part_resize.sh --factory "$ROM" --super-gib auto --execute`
+7. **Check**: when it prints `Done`, run `adb shell lpdump | grep -A3 "Block device table"`, `adb shell df -h /data`.
+
+The script clears the recovery flag itself, reboots to the bootloader, flashes `super`, erases `metadata`, flashes `userdata`, boots, and prints the new sizes. A first boot after the wipe can take several minutes.
+Every run writes a log to `$PART_DATA/logs/`; attach it when you ask for help.
+
+**Go back** to the original layout at any time (recovery, root adb):
 
 ```bash
-bash scripts/part_backup.sh
+bash scripts/part_restore.sh                                              # dry run
+bash scripts/part_restore.sh --execute --flash-factory --factory "$ROM"   # table back + re-flash that ROM's super/userdata
 ```
 
-It creates `$PART_DATA/backups/<date>/` and a second copy under `C:\peridot_flash\partition_backup\<date>\`.
-**Copy that folder somewhere safe (cloud / another PC / USB stick).** Check that `SHA256.txt` exists and that `gpt_sda.sgdisk` is about 5 KB.
+## What every script does
 
-### 2. Reboot to recovery
+| Script | Purpose | Changes the phone? |
+|---|---|---|
+| `scripts/rom_check.sh <ROM>` | Is the ROM package complete? What does its `super` contain? Suggested size. **No phone needed.** | no |
+| `scripts/pull_sgdisk.sh` | Copies Android's own `sgdisk` (+2 libraries) from your booted phone, because recovery has none | no |
+| `scripts/part_backup.sh` | Saves the partition tables of all storage units (sda..sdf) with checksums, two copies, integrity-checked | no (read only) |
+| `scripts/part_resize.sh` | Dry run by default; `--execute` repartitions and flashes. `--reflash-only` flashes a ROM's `super` into a table that is already the right size (bootloader only) | **yes** |
+| `scripts/part_restore.sh` | Dry run by default; `--execute` writes the original table back, `--flash-factory` also re-flashes the ROM | **yes** |
+| `scripts/lp_resize.py` | The engine: `info`, `check`, `suggest`, `resize`, `verify`, `match` on a `super` image (works on files only) | no |
+| `scripts/lib.sh` | shared helpers (not run directly) | - |
 
-```bash
-adb reboot recovery            # the phone's recovery must give you "adb root"; nothing from userdata/super may be mounted
-adb get-state                  # must print: recovery
-```
-
-### 3. Dry run (changes nothing)
-
-```bash
-bash scripts/part_resize.sh --super-gib 12 --factory "$FACTORY"
-```
-
-Read the output. It checks that your live partition table equals your backup, builds the new `super` image, and shows what the new table would be
-(`super` 12.0 GiB, `userdata` 223.5 GiB). It must end with `DRY RUN ONLY`. If any line starts with `ERROR`, **stop** and read the message.
-
-### 4. Do it
-
-Only when step 3 looked right, and you accept that **all data will be erased**:
-
-```bash
-bash scripts/part_resize.sh --super-gib 12 --factory "$FACTORY" --execute
-```
-
-The script writes the table (in recovery), reboots to the bootloader, flashes the new `super` (several minutes, do not touch the phone), erases `metadata`, flashes `userdata`,
-reboots and prints the new sizes. The first boot after a data wipe can take several minutes.
-
-If the phone does not reach the bootloader by itself, hold **Power + Volume-Down**, then follow the message the script prints.
-
-### 5. Check
-
-On the phone (`adb shell`):
-
-```bash
-lpdump | grep -A3 "Block device table"      # Size: 12884901888 bytes  (= 12 GiB)
-sgdisk --print /dev/block/sda | grep -E " super| userdata"
-df -h /data
-```
-
-### 6. Go back to the original layout (if you want, or if something is wrong)
-
-```bash
-adb reboot recovery
-bash scripts/part_restore.sh                                                  # dry run
-bash scripts/part_restore.sh --execute --flash-factory --factory "$FACTORY"   # restore the table and re-flash the factory super/userdata
-```
-
-## Options
+### Options of `part_resize.sh`
 
 | Option | Meaning |
 |---|---|
-| `--super-gib N` | new size of `super` in GiB (default 12). Must be larger than today's; leave at least 1 GiB for `userdata` |
-| `--factory DIR` | the factory ROM `images` folder (or environment variable `FACTORY`) |
-| `--backup DIR` | which backup to compare with / restore from (default: the newest in `$PART_DATA/backups`) |
-| `--execute` | actually write. Without it every script is a dry run |
-| environment `PART_DATA`, `WIN_STAGE`, `ADB`, `FB`, `SGB` | data folder, Windows-visible staging folder (default `/mnt/c/peridot_flash`), adb/fastboot paths, sgdisk bundle folder |
+| `--factory DIR` | the ROM folder (`images` or its parent). Required |
+| `--super-gib N` or `auto` | new size in GiB. `auto` (default) = what the ROM needs + 30 % headroom, whole GiB. Must be larger than today's `super`; at least 1 GiB must stay for `userdata` |
+| `--execute` | actually write. Without it: dry run |
+| `--reflash-only` | do not touch the partition table; flash the `N` GiB `super` of this ROM. The `super` partition must already be exactly `N` GiB (checked via `fastboot getvar partition-size:super`). Needs only the bootloader, no root adb |
+| `--backup DIR` | which backup to compare with (default: the newest) |
+| `--assume-yes` | do not ask for the `ERASE` confirmation (automation only) |
+| `--allow-android` | allow running while Android is booted instead of recovery (advanced, less safe) |
+| `--allow-rom-mismatch` | continue although the ROM does not look like the installed one (will almost certainly not boot) |
+| environment | `PART_DATA`, `WIN_STAGE` (Windows-visible staging folder, default `C:\peridot_flash` via WSL), `ADB`, `FB`, `SGB` |
 
-## Limits (by design, to keep it safe)
+## Switching to another ROM
 
-- Only **growing** `super` is supported (shrinking needs the partition images unpacked and rebuilt).
-- Only the layout where `userdata` starts **right after** `super` on `sda` (the stock layout).
-- Sector size must be 4096 bytes. Other storage units (`sdb`..`sdf`) are never modified (they are only backed up).
-- The new `super` is built from the **factory** `super.img`. A custom/modded `super.img` should be resized the same way with `lp_resize.py resize`, as long as it is a normal Android sparse image.
+Example: you are on the engineering ROM with the table already enlarged, and want the retail HyperOS ROM with the extra space.
+
+1. **Keep a way back**: keep the engineering ROM folder and your table backup. Going back to a smaller table needs a recovery with root adb, i.e. the engineering ROM.
+2. Check the new ROM: `bash scripts/rom_check.sh <new ROM>` (it tells you the size it needs; with the HyperOS example 7.3 GiB, suggested 10 GiB).
+3. Flash the **whole new ROM with its own script**: `flash_all.bat` (Windows) or `flash_all.sh` from the ROM folder, **not** the `flash_all_lock.*` variants. This writes firmware + `super` + `userdata` and **erases the phone**.
+   It does not change the partition table, so an enlarged table stays enlarged. The ROM's `super.img` describes an 8.5 GiB device, so the extra space is simply unused for now. The ROM's script also checks anti-rollback for you.
+4. Optional, to use the extra space: put the phone in the bootloader (**Power + Volume-Down**) and run
+   `bash scripts/part_resize.sh --factory <new ROM> --super-gib 12 --reflash-only` (dry run), then add `--execute`.
+   It builds a 12 GiB version of the new ROM's `super` and flashes it; it does not need adb or recovery. `userdata` is wiped again.
+
+If the table is still the small original one and you only have a retail ROM (no root recovery), install the engineering ROM first, do the table change there, then switch ROM as above.
+
+## Choosing the size
+
+The tool computes it for you: `rom_check.sh` / `lp_resize.py check` print, for **your** ROM,
+what each slot uses, how much the image holds, the minimum possible size and the suggestion (`ROM + 30 %`, rounded up to whole GiB, never below today's size).
+Examples from the two tested ROMs: engineering ROM uses 3.9 GiB (suggest 9 GiB); HyperOS 3.0 uses 7.3 GiB (suggest 10 GiB).
+Remember the extra space is taken from `userdata`. On a Virtual A/B phone (this one) only slot `_a` holds data; slot `_b` is empty, OTA updates stage their data in `userdata`.
+
+## Limits and what is checked
+
+Not supported, on purpose: shrinking `super`; a `super` that is not directly followed by `userdata`; sector sizes other than 4096; other devices; ROMs with a split or non-LP `super`; retrofit (multi-device) dynamic partitions; LP metadata other than v10.x.
+
+Checked automatically before anything is written: the ROM package is complete; the size is valid for this ROM; host disk space; the device is a peridot; the battery is at least 50 %; the phone is in recovery with root adb;
+the live table equals your backup and the backup exists in two places; `super`/`userdata` positions and GUIDs are read from the live table; the new table is dry-run by `sgdisk --pretend`;
+the ROM matches the installed one (same partition names/sizes in `super`); in the bootloader: product is peridot, anti-rollback is not higher than the ROM, and (reflash-only) the partition has exactly the requested size.
+After the write: the table is read back and compared. After the flash: Android must report a finished boot; `lpdump`, `sgdisk` and `df` are printed.
 
 ## Status / tested on
 
-Tested on **one** POCO F6 (peridot), factory eng ROM `FACTORY-PERIDOT-24.4.17_14.0` (Android 14, stock 6.1 kernel), on 2026-11-25:
+Tested on **one** POCO F6 (peridot), 2026-11-25, factory engineering ROM `FACTORY-PERIDOT-24.4.17_14.0` (Android 14):
 
-- `part_resize.sh --execute` with `--super-gib 12`: `super` 8.5 -> 12 GiB, `userdata` 227 -> 223.5 GiB. Android booted from the resized `super`; `lpdump` showed the 12 GiB device and group sizes, all logical partitions (`system_ext`, `product`, `vendor`, `vendor_dlkm`, `system_dlkm`, `odm`) were mounted, `/data` was 224 GiB.
-- That real run used an earlier version of the scripts that did **not** clear the recovery flag: the phone kept booting into recovery until the flag in `misc` was cleared by hand. The scripts now clear it (see [troubleshooting](docs/RECOVERY_AND_TROUBLESHOOTING.md)).
-- The final versions of `part_backup.sh`, `part_resize.sh` (dry run, also 12 -> 14 GiB) and `part_restore.sh` (dry run) were run against the phone; the final `--execute` paths of the resize and the restore have **not** been re-run after the last fixes, and `part_restore.sh --execute` has never been run on real hardware.
-- Not tested: any other device, ROM version, or a user (locked-down) build.
+- real `--execute` runs on earlier versions of the scripts: resize 8.5 -> 12 GiB (Android booted, `lpdump` showed the new sizes), restore to the original table + factory `super` (Android booted), and resize 8.5 -> 12 GiB again.
+  Found and fixed on the way: the recovery flag in `misc` (phone kept returning to recovery), and a WSL-symlink problem with Windows adb.
+- the image engine (`lp_resize.py`) was cross-checked against Android's own `lpdump` and also built a 12 GiB `super` from the retail HyperOS 3.0 ROM.
+- **This version (v2: ROM analysis, matching, `--reflash-only`, new checks and docs) is new**: the parts that need a phone (`part_resize.sh` normal mode, `--reflash-only`, `part_restore.sh`, `part_backup.sh`) have not all been re-run since the rewrite.
+  See the table in [docs/TESTING.md](docs/TESTING.md) for exactly what was and was not tested.
+- Never tested: any other device, a retail ROM installed on the phone, Linux/macOS hosts.
 
-## Help and details
+## More documentation
 
-- [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) - what is a GPT, a LUN, `super`, dynamic partitions, why only the metadata changes.
+- [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) - GPT, LUNs, `super`, LP metadata, why only the metadata changes, Virtual A/B.
 - [docs/RECOVERY_AND_TROUBLESHOOTING.md](docs/RECOVERY_AND_TROUBLESHOOTING.md) - when something goes wrong, restore paths, EDL.
-- [docs/PERIDOT_LAYOUT.md](docs/PERIDOT_LAYOUT.md) - the stock partition table this was written for.
+- [docs/PERIDOT_LAYOUT.md](docs/PERIDOT_LAYOUT.md) - the stock partition table and the two ROMs' `super` contents.
+- [docs/TESTING.md](docs/TESTING.md) - what has been tested and how to test a change.
 
 No license has been chosen for this repository yet; ask the owners before reusing the code.

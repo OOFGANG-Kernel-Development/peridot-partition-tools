@@ -13,6 +13,15 @@
 | Phone reaches the bootloader (fastboot works), but nothing boots | The table is probably fine; the data is incomplete | Run the factory ROM's own `flash_all` script, or "Re-flash by hand" below |
 | Phone is **dead** (no logo, no fastboot) | The bootloader chain or the table is damaged | See "Last resort: EDL" |
 | Phone keeps booting into **recovery** after the script, although the flash steps all succeeded | `adb reboot recovery` left a `boot-recovery` command in the `misc` partition and nothing cleared it (older script versions) | From recovery: `adb shell dd if=/dev/zero of=/dev/block/by-name/misc bs=2048 count=1` then `adb reboot`. This only clears the 2048-byte boot message, exactly what recovery itself does. The current scripts do it for you |
+| `ERROR: this ROM differs from the one installed` | the ROM folder is not the version on the phone | Use the ROM that is installed, or flash the new ROM completely with its own `flash_all` first (see README, "Switching to another ROM") |
+| `ERROR: no root adb` / `explain_no_root` text | recovery or ROM without root adb (retail ROMs) | Use the engineering ROM for the table change, or use `--reflash-only` if the table is already the size you want |
+| `not enough free disk space` | host or `C:\peridot_flash` too full | Free 10-20 GB, or set `PART_DATA`/`WIN_STAGE` to another drive. Do not use OneDrive/cloud folders |
+| `--reflash-only`: `the 'super' partition is X MiB but you asked for N GiB` | the table is not N GiB | Pick `--super-gib` equal to the real size, or run the normal mode in recovery |
+| `this super.img cannot be handled` / `UNSUPPORTED` | split image, not a dynamic-partitions super, or LP metadata of another version | Use a complete single `super.img` (merge chunks with `simg2img`); other layouts are not supported |
+| `anti-rollback: the phone has X, this ROM only Y` | the ROM is older than the phone's anti-rollback value | Use a newer ROM. Flashing an older one would be refused or could brick |
+| `adb push of sgdisk failed` | `$SGB`/`$PART_DATA` is a symlink or synced folder Windows cannot read | Use a real local folder (`PART_DATA=$HOME/peridot-partition-data`) |
+| `sgdisk does not run on this phone` | the bundle comes from a different Android version | Run `pull_sgdisk.sh` while the phone runs the ROM you are using |
+| `the live partition table differs from the backup` | the table changed after your backup | Take a fresh backup with `part_backup.sh` |
 | `adb` does not list the phone in recovery | USB / driver / recovery without adb | Reconnect, try another cable/port, `adb kill-server`, reboot to recovery again. If this recovery has no adb, you cannot use these scripts on that ROM |
 | `fastboot devices` empty although the phone shows the fastboot screen | Windows driver / cable | Reinstall the Google/Xiaomi USB driver, use a USB 2.0 port, do not use hubs |
 | Windows `fastboot flash super` is very slow | 4 GB over USB | Normal: several minutes. Do not unplug |
@@ -29,6 +38,10 @@ bash scripts/part_restore.sh --execute --flash-factory --factory "$FACTORY"   # 
 
 The table comes from `gpt_sda.sgdisk` (created by `sgdisk --backup`), the same format Android's `sgdisk --load-backup` reads.
 Restoring the table does not bring back the *contents* of `userdata`: that data is gone after a resize. Restoring only gives you the original layout, onto which the factory `super`/`userdata` can be flashed.
+
+## Getting back into recovery when Android does not boot
+
+On this phone the recovery lives in `vendor_boot`. If Android does not start but the bootloader works, you can bring recovery back from the ROM folder: `fastboot flash vendor_boot_a <ROM>\images\vendor_boot.img` then `fastboot reboot recovery` (or Power + Volume-Up from the bootloader menu). The engineering ROM's `vendor_boot` gives a recovery with root adb.
 
 ## Re-flash by hand (bootloader)
 

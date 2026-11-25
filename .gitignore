@@ -7,3 +7,5 @@ tail_*.bin
 super*.img
 *.raw
 sgdisk_bundle/
+__pycache__/
+*.pyc
