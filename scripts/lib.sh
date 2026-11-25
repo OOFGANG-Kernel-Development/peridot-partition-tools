@@ -50,7 +50,10 @@ fb_var(){ timeout 15 "$FB" getvar "$1" 2>&1 | tr -d '\r' | grep -E "^$1:" | head
 wait_adb_state(){ # wait_adb_state recovery|device [tries]
   local want=$1 n=${2:-60} i s; for i in $(seq 1 "$n"); do s=$(adb_state); [ "$s" = "$want" ] && return 0; sleep 4; done; return 1; }
 wait_fastboot(){ local i; for i in $(seq 1 "${1:-40}"); do fb_present && return 0; sleep 3; done; return 1; }
-wait_android(){ local i st r; for i in $(seq 1 "${1:-150}"); do st=$(adb_state); r=$(timeout 8 "$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r'); [ "$st" = device ] && [ "$r" = 1 ] && return 0; sleep 6; done; return 1; }
+wait_android(){ # a retail ROM has USB debugging OFF after a data wipe, so adb may never appear even though Android booted fine: explain that instead of just failing
+  local i st r; for i in $(seq 1 "${1:-150}"); do st=$(adb_state); r=$(timeout 8 "$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r'); [ "$st" = device ] && [ "$r" = 1 ] && return 0
+    [ "$i" = 40 ] && echo "  ... still waiting (4 min). If the phone already shows the setup screen it HAS booted: adb is simply off after a wipe. Finish the setup, enable USB debugging (Settings > About > tap the OS version 7x > Developer options) and authorise this PC; this script keeps waiting."
+    sleep 6; done; return 1; }
 # 'adb shell' must give uid 0 for everything we do
 adb_is_root(){
   SU=0; [ "$(adbq id -u | tr -dc 0-9)" = 0 ] && return 0

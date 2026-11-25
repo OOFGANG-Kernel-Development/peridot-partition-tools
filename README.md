@@ -75,6 +75,7 @@ What that means for you:
 - **Options for root in recovery on a retail ROM**: (a) a **custom recovery** that gives root adb (TWRP/OrangeFox-style, built for peridot). On this phone the recovery lives in `vendor_boot`, so flashing one **replaces the vendor ramdisk**: use a build made for your ROM version and **keep the ROM's own `vendor_boot.img`** (it is in the ROM folder) to flash back if Android no longer boots;
   (b) Magisk/KernelSU root in Android (`su` is supported: run with `--allow-android`, less safe); (c) the engineering ROM's recovery.
   A custom recovery may not ship `sgdisk`; the tool then pushes the one you pulled with `pull_sgdisk.sh`.
+- **Root with KernelSU/Magisk** (Android mode, `--allow-android`): `adb shell su` only works after you grant root to the **Shell** app in the manager's superuser list (adb runs as that app); the phone may show a grant popup. After a data wipe the grant is gone and must be given again.
 - The ROM must be **complete**: `super.img` (a single Android sparse or raw image) and `userdata.img`. A ROM whose super is split into pieces (`super.img_sparsechunk.N`) is detected and refused.
 
 ## Quick start
@@ -95,6 +96,7 @@ export ROM=/mnt/c/roms/peridot_xyz                            # the ROM that is 
 7. **Check**: when it prints `Done`, run `adb shell lpdump | grep -A3 "Block device table"`, `adb shell df -h /data`.
 
 The script clears the recovery flag itself, reboots to the bootloader, flashes `super`, erases `metadata`, flashes `userdata`, boots, and prints the new sizes. A first boot after the wipe can take several minutes.
+**On a retail ROM, USB debugging is OFF after the wipe**, so the script will wait and print a hint: finish the setup wizard, enable USB debugging again and authorise the PC; Android has booted fine if you see the setup screen.
 Every run writes a log to `$PART_DATA/logs/`; attach it when you ask for help.
 
 **Go back** to the original layout at any time (recovery, root adb):

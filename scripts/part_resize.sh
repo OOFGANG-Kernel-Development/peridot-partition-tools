@@ -75,7 +75,7 @@ flash_stage(){ # phone must be in the bootloader
   "$FB" flash userdata "$(winpath "$ROM/userdata.img")" || die "flash userdata failed"
   "$FB" reboot; STAGE=booting
   say "waiting for Android (the first boot after a wipe can take several minutes)"
-  wait_android 150 && ok "Android is up" || die "Android did not report a finished boot in time"
+  wait_android 150 && ok "Android is up" || warn "no adb connection to a finished Android boot within 15 minutes. If the phone shows the setup screen / home screen it booted fine (a retail ROM has USB debugging off after a wipe: enable it to check with adb). If it is stuck on the logo or in recovery, see docs/RECOVERY_AND_TROUBLESHOOTING.md"
 }
 final_report(){ echo; if adb_is_root; then adbq 'lpdump 2>&1 | grep -A3 "Block device table"; lpdump 2>&1 | grep "Maximum size" | tail -2; df -h /data | tail -1'; else echo "(adb is not root here: cannot run lpdump; check storage in Settings)"; fi; echo; echo "${C_G}Done.${C_0} Log: $LOGFILE"; }
 
