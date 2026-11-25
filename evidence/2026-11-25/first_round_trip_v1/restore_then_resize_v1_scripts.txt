@@ -1,0 +1,120 @@
+##### PHASE 1: RESTORE (original layout)
+
+== restore from $HOME/peridot-partition-data/backups/20261125_0446
+-- current table:
+  30          208896         3354623   12.0 GiB    FFFF  super
+  31         3354624        61949946   223.5 GiB   A03A  userdata
+-- table that will be restored (dry run, nothing written):
+  30          208896         2437119   8.5 GiB     FFFF  super
+  31         2437120        61949946   227.0 GiB   A03A  userdata
+
+== writing the original table back
+The new table will be used at the next reboot or after you
+run partprobe(8) or kpartx(8)
+The operation has completed successfully.
+restored: live table == backup
+
+== clear the recovery flag, then bootloader + factory super/userdata
+Warning: skip copying super image avb footer due to sparse image.
+Sending sparse 'super' 1/6 (721288 KB)             OKAY [ 20.022s]
+Writing 'super'                                    OKAY [  0.002s]
+Sending sparse 'super' 2/6 (778720 KB)             OKAY [ 22.809s]
+Writing 'super'                                    OKAY [  0.015s]
+Sending sparse 'super' 3/6 (754596 KB)             OKAY [ 22.974s]
+Writing 'super'                                    OKAY [  0.014s]
+Sending sparse 'super' 4/6 (733240 KB)             OKAY [ 22.490s]
+Writing 'super'                                    OKAY [  0.006s]
+Sending sparse 'super' 5/6 (720896 KB)             OKAY [ 22.059s]
+Writing 'super'                                    OKAY [  0.003s]
+Sending sparse 'super' 6/6 (327848 KB)             OKAY [  9.203s]
+Writing 'super'                                    OKAY [  0.008s]
+Finished. Total time: 119.659s
+Erasing 'metadata'                                 OKAY [  0.010s]
+Finished. Total time: 0.315s
+Warning: skip copying userdata image avb footer due to sparse image.
+Sending 'userdata' (3864 KB)                       OKAY [  0.131s]
+Writing 'userdata'                                 OKAY [  0.004s]
+Finished. Total time: 0.171s
+Rebooting                                          OKAY [  0.038s]
+Finished. Total time: 0.040s
+adb state=device boot_completed=1
+##### PHASE 1 VERIFY
+  30          208896         2437119   8.5 GiB     FFFF  super
+  31         2437120        61949946   227.0 GiB   A03A  userdata
+  Maximum size: 9116319744 bytes
+  Maximum size: 9116319744 bytes
+227G 1.6G 225G 1%
+misc: [bootonce-bootloa]
+6
+##### PHASE 2: RESIZE back to 12 GiB (final script, --execute)
+
+== 0. preconditions
+backup: $HOME/peridot-partition-data/backups/20261125_0528/ (+ second copy)
+
+== 1. push sgdisk and compare the live table with the backup
+live table == backup (31 partitions)
+
+== 1b. read super/userdata from the live table (by name, nothing hard-coded)
+partition numbers: super=30 userdata=31
+new layout: super 12 GiB = sectors 208896..3354623, userdata 3354624..61949946
+
+== 2. build the resized super image (12 GiB)
+reusing $HOME/peridot-partition-data/super_resize/super_12g.img
+
+== 3. dry run on the phone (sgdisk --pretend, nothing is written)
+Total free space is 0 sectors (0 bytes)
+  30          208896         3354623   12.0 GiB    FFFF  super
+  31         3354624        61949946   223.5 GiB   A03A  userdata
+
+== 4. WRITE the new GPT (recovery, nothing mounted)
+The new table will be used at the next reboot or after you
+run partprobe(8) or kpartx(8)
+The operation has completed successfully.
+  30          208896         3354623   12.0 GiB    FFFF  super
+  31         3354624        61949946   223.5 GiB   A03A  userdata
+
+== 5. clear the recovery flag, then bootloader + flash
+Warning: skip copying super image avb footer due to sparse image.
+Sending sparse 'super' 1/6 (721288 KB)             OKAY [ 20.776s]
+Writing 'super'                                    OKAY [  0.006s]
+Sending sparse 'super' 2/6 (778720 KB)             OKAY [ 21.247s]
+Writing 'super'                                    OKAY [  0.008s]
+Sending sparse 'super' 3/6 (754596 KB)             OKAY [ 20.364s]
+Writing 'super'                                    OKAY [  0.004s]
+Sending sparse 'super' 4/6 (733240 KB)             OKAY [ 19.180s]
+Writing 'super'                                    OKAY [  0.017s]
+Sending sparse 'super' 5/6 (720896 KB)             OKAY [ 20.785s]
+Writing 'super'                                    OKAY [  0.003s]
+Sending sparse 'super' 6/6 (327848 KB)             OKAY [ 10.170s]
+Writing 'super'                                    OKAY [  0.003s]
+Finished. Total time: 112.614s
+Erasing 'metadata'                                 OKAY [  0.005s]
+Finished. Total time: 0.262s
+Warning: skip copying userdata image avb footer due to sparse image.
+Sending 'userdata' (3864 KB)                       OKAY [  0.099s]
+Writing 'userdata'                                 OKAY [  0.002s]
+Finished. Total time: 0.129s
+Rebooting                                          OKAY [  0.040s]
+Finished. Total time: 0.040s
+
+== 6. boot + verify
+adb state=device boot_completed=1
+Block device table:
+------------------------
+  Partition name: super
+  First sector: 2048
+  Maximum size: 0 bytes
+  Maximum size: 12874416128 bytes
+  Maximum size: 12874416128 bytes
+  30          208896         3354623   12.0 GiB    FFFF  super
+  31         3354624        61949946   223.5 GiB   A03A  userdata
+/dev/block/dm-46 224G 1.6G  222G   1% /mnt/pass_through/0/emulated
+##### PHASE 2 VERIFY
+  30          208896         3354623   12.0 GiB    FFFF  super
+  31         3354624        61949946   223.5 GiB   A03A  userdata
+  Maximum size: 12874416128 bytes
+  Maximum size: 12874416128 bytes
+224G 1.6G 222G 1%
+misc: [bootonce-bootloa]
+6
+ROUNDTRIP_DONE

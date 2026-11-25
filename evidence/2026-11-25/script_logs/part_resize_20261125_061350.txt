@@ -1,0 +1,35 @@
+log: $HOME/peridot-partition-data/logs/part_resize_20261125_061350.log
+
+== 1. the ROM package
+ROM images: <download-folder>/peridot_in_global_images_OS3.0.303.0.WNPINXM_16.0/images
+  OK    super.img present (7.3G)
+  OK    userdata.img present (1.1G)
+  OK    rawprogram0.xml present (partition layout of this ROM)
+  OK    anti-rollback value of this ROM: 1
+    image            : super.img  (sparse, logical size 9126805504 (8.500 GiB))
+    LP metadata      : v10.2, 3 slots, 6 valid copies, Virtual A/B flag: True
+    super device     : 9126805504 (8.500 GiB) in this ROM
+      group qti_dynamic_partitions_a   used  7.309 GiB   limit 8.490 GiB
+      group qti_dynamic_partitions_b   used  0.000 GiB   limit 8.490 GiB
+    used by partitions: 7847768064 (7.309 GiB)   (largest single slot: 7.309 GiB)
+    free in this ROM's super: 1.190 GiB
+    minimum possible : 7848816640 (7.310 GiB)
+    suggested size   : 10 GiB  (ROM + 30 % headroom, whole GiB, not below today's size)
+    VERDICT          : OK, this image can be resized
+    requested size   : 14.0 GiB -> OK
+    VERDICT          : OK, this image can be resized
+  OK    disk space
+
+== 2. the phone
+  OK    phone is in recovery
+  OK    root adb
+  OK    device: peridot peridot
+  OK    battery 97 %
+  OK    'super' lives on /dev/block/sda
+
+ERROR: adb push of sgdisk failed (is $HOME/peridot-partition-data/sgdisk_bundle a real folder, not a symlink / synced cloud folder?)
+(log: $HOME/peridot-partition-data/logs/part_resize_20261125_061350.log)
+
+--- where things stand ---
+Nothing was changed on the phone.
+Log: $HOME/peridot-partition-data/logs/part_resize_20261125_061350.log

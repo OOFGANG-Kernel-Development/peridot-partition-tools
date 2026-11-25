@@ -1,0 +1,191 @@
+# Root-level state read from the custom recovery (read-only commands only)
+# captured 2026-11-25T07:08Z
+uid=0 debuggable=1 slot=_a
+
+===== lpdump (the dynamic-partition metadata that Android itself reads from /dev/block/by-name/super)
+Slot 0:
+Metadata version: 10.2
+Metadata size: 1488 bytes
+Metadata max size: 65536 bytes
+Metadata slot count: 3
+Header flags: virtual_ab_device
+Partition table:
+------------------------
+  Name: odm_a
+  Group: qti_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 3741039 linear super 2048
+------------------------
+  Name: odm_b
+  Group: qti_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+  Name: product_a
+  Group: qti_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 6680151 linear super 3743744
+------------------------
+  Name: product_b
+  Group: qti_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+  Name: system_a
+  Group: qti_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 1400303 linear super 10424320
+------------------------
+  Name: system_b
+  Group: qti_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+  Name: system_dlkm_a
+  Group: qti_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 29167 linear super 11825152
+------------------------
+  Name: system_dlkm_b
+  Group: qti_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+  Name: system_ext_a
+  Group: qti_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 1231079 linear super 11855872
+------------------------
+  Name: system_ext_b
+  Group: qti_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+  Name: vendor_a
+  Group: qti_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 839903 linear super 13088768
+------------------------
+  Name: vendor_b
+  Group: qti_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+  Name: vendor_dlkm_a
+  Group: qti_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 59167 linear super 13930496
+------------------------
+  Name: vendor_dlkm_b
+  Group: qti_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+  Name: mi_ext_a
+  Group: qti_dynamic_partitions_a
+  Attributes: readonly
+  Extents:
+    0 .. 1346855 linear super 13989888
+------------------------
+  Name: mi_ext_b
+  Group: qti_dynamic_partitions_b
+  Attributes: readonly
+  Extents:
+------------------------
+Super partition layout:
+------------------------
+super: 2048 .. 3743088: odm_a (3741040 sectors)
+super: 3743744 .. 10423896: product_a (6680152 sectors)
+super: 10424320 .. 11824624: system_a (1400304 sectors)
+super: 11825152 .. 11854320: system_dlkm_a (29168 sectors)
+super: 11855872 .. 13086952: system_ext_a (1231080 sectors)
+super: 13088768 .. 13928672: vendor_a (839904 sectors)
+super: 13930496 .. 13989664: vendor_dlkm_a (59168 sectors)
+super: 13989888 .. 15336744: mi_ext_a (1346856 sectors)
+------------------------
+Block device table:
+------------------------
+  Partition name: super
+  First sector: 2048
+  Size: 12884901888 bytes
+  Flags: none
+------------------------
+Group table:
+------------------------
+  Name: default
+  Maximum size: 0 bytes
+  Flags: none
+------------------------
+  Name: qti_dynamic_partitions_a
+  Maximum size: 12874416128 bytes
+  Flags: none
+------------------------
+  Name: qti_dynamic_partitions_b
+  Maximum size: 12874416128 bytes
+  Flags: none
+------------------------
+---------------
+Snapshot state:
+---------------
+Update state: none
+Using snapuserd: 0
+Using userspace snapshots: 0
+Using io_uring: 0
+Using XOR compression: 0
+Current slot: _a
+Boot indicator: booting from unknown slot
+Rollback indicator: No such file or directory
+Forward merge indicator: No such file or directory
+Source build fingerprint: 
+
+===== sgdisk --print /dev/block/sda (GPT of the disk that holds super/userdata; disk GUID line removed)
+Disk /dev/block/sda: 61949952 sectors, 236.3 GiB
+Sector size (logical/physical): 4096/4096 bytes
+Partition table holds up to 32 entries
+Main partition table begins at sector 2 and ends at sector 2
+First usable sector is 6, last usable sector is 61949946
+Partitions will be aligned on 2-sector boundaries
+Total free space is 0 sectors (0 bytes)
+
+Number  Start (sector)    End (sector)  Size       Code  Name
+   1               6               7   8.0 KiB     FFFF  switch
+   2               8              15   32.0 KiB    A02C  ssd
+   3              16              23   32.0 KiB    FFFF  dbg
+   4              24              31   32.0 KiB    FFFF  bk01
+   5              32              63   128.0 KiB   FFFF  bk02
+   6              64             127   256.0 KiB   FFFF  bk03
+   7             128             255   512.0 KiB   FFFF  bk04
+   8             256             383   512.0 KiB   A02D  keystore
+   9             384             511   512.0 KiB   FFFF  frp
+  10             512             767   1024.0 KiB  FFFF  countrycode_a
+  11             768            1023   1024.0 KiB  FFFF  countrycode_b
+  12            1024            2047   4.0 MiB     A01F  misc
+  13            2048            4095   8.0 MiB     FFFF  bk05
+  14            4096            6143   8.0 MiB     FFFF  logfs
+  15            6144            8191   8.0 MiB     FFFF  ffu
+  16            8192            8193   8.0 KiB     A021  devinfo
+  17            8194            8225   128.0 KiB   FFFF  vbmeta_system_a
+  18            8226            8257   128.0 KiB   FFFF  vbmeta_system_b
+  19            8258            9281   4.0 MiB     FFFF  mem
+  20            9282           16383   27.7 MiB    FFFF  bk06
+  21           16384           32767   64.0 MiB    FFFF  metadata
+  22           32768           34303   6.0 MiB     FFFF  bk07
+  23           34304           42495   32.0 MiB    FFFF  mtdblk
+  24           42496           81919   154.0 MiB   FFFF  blackbox
+  25           81920           86015   16.0 MiB    FFFF  oops
+  26           86016          162815   300.0 MiB   A01C  rawdump
+  27          162816          167935   20.0 MiB    FFFF  opconfig
+  28          167936          176127   32.0 MiB    FFFF  mbnconfig
+  29          176128          208895   128.0 MiB   A039  rescue
+  30          208896         3354623   12.0 GiB    FFFF  super
+  31         3354624        61949946   223.5 GiB   A03A  userdata
+
+===== misc partition boot message (must be empty so the phone does not boot back into recovery)
+[]

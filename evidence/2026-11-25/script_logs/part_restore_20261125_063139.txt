@@ -1,0 +1,14 @@
+log: $HOME/peridot-partition-data/logs/part_restore_20261125_063139.log
+  OK    backup checksums match
+
+== phone
+disk: /dev/block/sda
+  OK    backup and phone have the same disk size (236 GiB)
+-- current table:
+  30          208896         3878911   14.0 GiB    FFFF  super
+  31         3878912        61949946   221.5 GiB   A03A  userdata
+-- table that will be restored (dry run, nothing written):
+  30          208896         3354623   12.0 GiB    FFFF  super
+  31         3354624        61949946   223.5 GiB   A03A  userdata
+
+DRY RUN ONLY. Re-run with --execute (and --flash-factory --factory <ROM>).

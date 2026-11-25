@@ -1,0 +1,9 @@
+log: $HOME/peridot-partition-data/logs/part_backup_20261125_053847.log
+  OK    phone state: device
+
+== backing up: sda sdb sdc sdd sde sdf 
+stat: cannot statx 'gpt_sda.sgdisk': No such file or directory
+scripts/part_backup.sh: line 22: [: : integer expected
+
+ERROR: backup of sda looks empty (gpt_sda.sgdisk)
+(log: $HOME/peridot-partition-data/logs/part_backup_20261125_053847.log)

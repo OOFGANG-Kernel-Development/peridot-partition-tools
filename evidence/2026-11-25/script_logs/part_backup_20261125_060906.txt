@@ -1,0 +1,15 @@
+log: $HOME/peridot-partition-data/logs/part_backup_20261125_060906.log
+  OK    phone state: recovery
+
+== backing up: sda sdb sdc sdd sde sdf 
+  sda: 61949952 sectors, 31 partitions  OK
+  sdb: 3072 sectors, 7 partitions  OK
+  sdc: 3072 sectors, 7 partitions  OK
+  sdd: 2048 sectors, 4 partitions  OK
+  sde: 499712 sectors, 70 partitions  OK
+  sdf: 16384 sectors, 8 partitions  OK
+  OK    second copy verified (checksums match)
+
+Backup done: $HOME/peridot-partition-data/backups/20261125_0609
+second copy : /mnt/c/peridot_flash/partition_backup/20261125_0609
+Also copy this folder somewhere ELSE (another PC, cloud, USB stick): it is the only way back.

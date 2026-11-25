@@ -1,0 +1,11 @@
+image            : super.img  (sparse, logical size 9126805504 (8.500 GiB))
+LP metadata      : v10.2, 3 slots, 6 valid copies, Virtual A/B flag: True
+super device     : 9126805504 (8.500 GiB) in this ROM
+  group qti_dynamic_partitions_a   used  7.309 GiB   limit 8.490 GiB
+  group qti_dynamic_partitions_b   used  0.000 GiB   limit 8.490 GiB
+used by partitions: 7847768064 (7.309 GiB)   (largest single slot: 7.309 GiB)
+free in this ROM's super: 1.190 GiB
+minimum possible : 7848816640 (7.310 GiB)
+suggested size   : 10 GiB  (ROM + 30 % headroom, whole GiB, not below today's size)
+requested size   : 12.0 GiB -> OK
+VERDICT          : OK, this image can be resized

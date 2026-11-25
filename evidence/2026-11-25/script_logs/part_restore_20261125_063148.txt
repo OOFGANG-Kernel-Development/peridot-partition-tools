@@ -1,0 +1,62 @@
+log: $HOME/peridot-partition-data/logs/part_restore_20261125_063148.log
+  OK    backup checksums match
+
+== phone
+disk: /dev/block/sda
+  OK    backup and phone have the same disk size (236 GiB)
+-- current table:
+  30          208896         3878911   14.0 GiB    FFFF  super
+  31         3878912        61949946   221.5 GiB   A03A  userdata
+-- table that will be restored (dry run, nothing written):
+  30          208896         3354623   12.0 GiB    FFFF  super
+  31         3354624        61949946   223.5 GiB   A03A  userdata
+  OK    super.img present (7.3G)
+  OK    userdata.img present (1.1G)
+  OK    rawprogram0.xml present (partition layout of this ROM)
+  OK    anti-rollback value of this ROM: 1
+
+== writing the original table back
+The new table will be used at the next reboot or after you
+run partprobe(8) or kpartx(8)
+The operation has completed successfully.
+  OK    restored: the live table equals the backup
+
+== clear the recovery flag, bootloader, factory super/userdata
+Warning: skip copying super image avb footer due to sparse image.
+Sending sparse 'super' 1/11 (742216 KB)            OKAY [ 20.575s]
+Writing 'super'                                    OKAY [  0.002s]
+Sending sparse 'super' 2/11 (720896 KB)            OKAY [ 20.234s]
+Writing 'super'                                    OKAY [  0.010s]
+Sending sparse 'super' 3/11 (729456 KB)            OKAY [ 20.093s]
+Writing 'super'                                    OKAY [  0.001s]
+Sending sparse 'super' 4/11 (720896 KB)            OKAY [ 20.510s]
+Writing 'super'                                    OKAY [  0.012s]
+Sending sparse 'super' 5/11 (720896 KB)            OKAY [ 20.097s]
+Writing 'super'                                    OKAY [  0.003s]
+Sending sparse 'super' 6/11 (762072 KB)            OKAY [ 20.825s]
+Writing 'super'                                    OKAY [  0.008s]
+Sending sparse 'super' 7/11 (720896 KB)            OKAY [ 19.715s]
+Writing 'super'                                    OKAY [  0.010s]
+Sending sparse 'super' 8/11 (774816 KB)            OKAY [ 21.300s]
+Writing 'super'                                    OKAY [  0.002s]
+Sending sparse 'super' 9/11 (759060 KB)            OKAY [ 21.801s]
+Writing 'super'                                    OKAY [  0.015s]
+Sending sparse 'super' 10/11 (775652 KB)           OKAY [ 24.236s]
+Writing 'super'                                    OKAY [  0.011s]
+Sending sparse 'super' 11/11 (214676 KB)           OKAY [  6.929s]
+Writing 'super'                                    OKAY [  0.011s]
+Finished. Total time: 216.487s
+Erasing 'metadata'                                 OKAY [  0.009s]
+Finished. Total time: 0.021s
+Warning: skip copying userdata image avb footer due to sparse image.
+Sending sparse 'userdata' 1/2 (740288 KB)          OKAY [ 23.763s]
+Writing 'userdata'                                 OKAY [  0.015s]
+Sending sparse 'userdata' 2/2 (356376 KB)          OKAY [ 11.334s]
+Writing 'userdata'                                 OKAY [  0.008s]
+Finished. Total time: 35.172s
+Rebooting                                          OKAY [  0.050s]
+Finished. Total time: 0.051s
+
+== waiting for Android
+  ... still waiting (4 min). If the phone already shows the setup screen it HAS booted: adb is simply off after a wipe. Finish the setup, enable USB debugging (Settings > About > tap the OS version 7x > Developer options) and authorise this PC; this script keeps waiting.
+  OK    Android is up

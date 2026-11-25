@@ -1,0 +1,4 @@
+log: $HOME/peridot-partition-data/logs/part_backup_20261125_053909.log
+
+ERROR: no phone in adb mode (state 'none'). Boot Android or recovery and check 'adb devices'.
+(log: $HOME/peridot-partition-data/logs/part_backup_20261125_053909.log)

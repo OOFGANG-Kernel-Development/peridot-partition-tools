@@ -1,0 +1,70 @@
+log: $HOME/peridot-partition-data/logs/part_resize_20261125_064538.log
+
+== 1. the ROM package
+ROM images: <download-folder>/peridot_in_global_images_OS3.0.303.0.WNPINXM_16.0/images
+  OK    super.img present (7.3G)
+  OK    userdata.img present (1.1G)
+  OK    rawprogram0.xml present (partition layout of this ROM)
+  OK    anti-rollback value of this ROM: 1
+    image            : super.img  (sparse, logical size 9126805504 (8.500 GiB))
+    LP metadata      : v10.2, 3 slots, 6 valid copies, Virtual A/B flag: True
+    super device     : 9126805504 (8.500 GiB) in this ROM
+      group qti_dynamic_partitions_a   used  7.309 GiB   limit 8.490 GiB
+      group qti_dynamic_partitions_b   used  0.000 GiB   limit 8.490 GiB
+    used by partitions: 7847768064 (7.309 GiB)   (largest single slot: 7.309 GiB)
+    free in this ROM's super: 1.190 GiB
+    minimum possible : 7848816640 (7.310 GiB)
+    suggested size   : 10 GiB  (ROM + 30 % headroom, whole GiB, not below today's size)
+    VERDICT          : OK, this image can be resized
+    requested size   : 12.0 GiB -> OK
+    VERDICT          : OK, this image can be resized
+  OK    disk space
+
+== 2. --reflash-only: the phone must be in the bootloader
+  OK    recovery flag cleared
+rebooting the phone to the bootloader...
+  OK    'super' partition is exactly 12 GiB
+reusing $HOME/peridot-partition-data/super_resize/super_12g_peridot_in_global_images_OS3.0.303.0.WNP.img
+  OK    anti-rollback ok (phone 1, ROM 1)
+Warning: skip copying super image avb footer due to sparse image.
+Sending sparse 'super' 1/11 (742216 KB)            OKAY [ 20.856s]
+Writing 'super'                                    OKAY [  0.004s]
+Sending sparse 'super' 2/11 (720896 KB)            OKAY [ 19.719s]
+Writing 'super'                                    OKAY [  0.005s]
+Sending sparse 'super' 3/11 (729456 KB)            OKAY [ 19.597s]
+Writing 'super'                                    OKAY [  0.009s]
+Sending sparse 'super' 4/11 (720896 KB)            OKAY [ 19.369s]
+Writing 'super'                                    OKAY [  0.008s]
+Sending sparse 'super' 5/11 (720896 KB)            OKAY [ 19.348s]
+Writing 'super'                                    OKAY [  0.006s]
+Sending sparse 'super' 6/11 (762072 KB)            OKAY [ 20.383s]
+Writing 'super'                                    OKAY [  0.003s]
+Sending sparse 'super' 7/11 (720896 KB)            OKAY [ 19.260s]
+Writing 'super'                                    OKAY [  0.003s]
+Sending sparse 'super' 8/11 (774816 KB)            OKAY [ 20.799s]
+Writing 'super'                                    OKAY [  0.003s]
+Sending sparse 'super' 9/11 (759060 KB)            OKAY [ 20.379s]
+Writing 'super'                                    OKAY [  0.005s]
+Sending sparse 'super' 10/11 (775652 KB)           OKAY [ 20.777s]
+Writing 'super'                                    OKAY [  0.006s]
+Sending sparse 'super' 11/11 (214676 KB)           OKAY [  5.758s]
+Writing 'super'                                    OKAY [  0.002s]
+Finished. Total time: 206.371s
+Erasing 'metadata'                                 OKAY [  0.006s]
+Finished. Total time: 0.039s
+Warning: skip copying userdata image avb footer due to sparse image.
+Sending sparse 'userdata' 1/2 (740288 KB)          OKAY [ 19.869s]
+Writing 'userdata'                                 OKAY [  0.009s]
+Sending sparse 'userdata' 2/2 (356376 KB)          OKAY [  9.582s]
+Writing 'userdata'                                 OKAY [  0.007s]
+Finished. Total time: 29.506s
+Rebooting                                          OKAY [  0.021s]
+Finished. Total time: 0.021s
+
+== waiting for Android (the first boot after a wipe can take several minutes)
+  ... still waiting (4 min). If the phone already shows the setup screen it HAS booted: adb is simply off after a wipe. Finish the setup, enable USB debugging (Settings > About > tap the OS version 7x > Developer options) and authorise this PC; this script keeps waiting.
+  OK    Android is up
+
+(adb is not root here: cannot run lpdump; check storage in Settings)
+
+Done. Log: $HOME/peridot-partition-data/logs/part_resize_20261125_064538.log

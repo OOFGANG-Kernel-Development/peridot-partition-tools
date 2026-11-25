@@ -1,0 +1,1 @@
+log: $HOME/peridot-partition-data/logs/part_resize_20261125_055626.log

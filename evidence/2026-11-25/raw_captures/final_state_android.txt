@@ -1,0 +1,30 @@
+# Android side of the final state (phone booted into HyperOS, shell user, no root)
+# captured 2026-11-25T07:08Z
+sys.boot_completed=1
+fingerprint=POCO/peridot_in/peridot:16/BP2A.250605.031.A3/OS3.0.303.0.WNPINXM:user/release-keys
+android_release=16 sdk=36
+kernel=6.1.138-android14-11-g0c3d559bcd85-ab14529422
+dynamic_partitions=true virtual_ab=true slot=_a
+
+== df -h /data
+Filesystem       Size Used Avail Use% Mounted on
+/dev/block/dm-53 224G  14G  210G   7% /data/user/0
+
+== logical partitions mapped (device-mapper)
+mi_ext_a
+odm_a
+product_a
+system_a
+system_dlkm_a
+system_ext_a
+vendor_a
+vendor_dlkm_a
+
+== mounted logical partitions
+/dev/block/dm-9 /system_ext erofs
+/dev/block/dm-10 /product erofs
+/dev/block/dm-12 /vendor erofs
+/dev/block/dm-13 /vendor_dlkm erofs
+/dev/block/dm-14 /system_dlkm erofs
+/dev/block/dm-15 /odm erofs
+/dev/block/dm-11 /mi_ext erofs

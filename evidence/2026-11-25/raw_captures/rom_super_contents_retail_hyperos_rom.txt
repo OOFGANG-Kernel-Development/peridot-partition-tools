@@ -1,0 +1,23 @@
+LP metadata v10.2  slots=3  metadata_max_size=65536  logical_block_size=4096  geometry_checksum_ok=True  virtual_ab_flag=True
+block device 'super': first_sector=2048 (1 MiB reserved)  size=9126805504 (8.500 GiB)
+group 'default': max=unlimited  used=0 (0.000 GiB)
+group 'qti_dynamic_partitions_a': max=9116319744 (8.490 GiB)  used=7847768064 (7.309 GiB)
+group 'qti_dynamic_partitions_b': max=9116319744 (8.490 GiB)  used=0 (0.000 GiB)
+partitions:
+  odm_a              group=qti_dynamic_partitions_a   size=1915412480 (1.784 GiB)  extents=1
+  odm_b              group=qti_dynamic_partitions_b   size=0 (0.000 GiB)  extents=0  (empty)
+  product_a          group=qti_dynamic_partitions_a   size=3420237824 (3.185 GiB)  extents=1
+  product_b          group=qti_dynamic_partitions_b   size=0 (0.000 GiB)  extents=0  (empty)
+  system_a           group=qti_dynamic_partitions_a   size=716955648 (0.668 GiB)  extents=1
+  system_b           group=qti_dynamic_partitions_b   size=0 (0.000 GiB)  extents=0  (empty)
+  system_dlkm_a      group=qti_dynamic_partitions_a   size=14934016 (0.014 GiB)  extents=1
+  system_dlkm_b      group=qti_dynamic_partitions_b   size=0 (0.000 GiB)  extents=0  (empty)
+  system_ext_a       group=qti_dynamic_partitions_a   size=630312960 (0.587 GiB)  extents=1
+  system_ext_b       group=qti_dynamic_partitions_b   size=0 (0.000 GiB)  extents=0  (empty)
+  vendor_a           group=qti_dynamic_partitions_a   size=430030848 (0.400 GiB)  extents=1
+  vendor_b           group=qti_dynamic_partitions_b   size=0 (0.000 GiB)  extents=0  (empty)
+  vendor_dlkm_a      group=qti_dynamic_partitions_a   size=30294016 (0.028 GiB)  extents=1
+  vendor_dlkm_b      group=qti_dynamic_partitions_b   size=0 (0.000 GiB)  extents=0  (empty)
+  mi_ext_a           group=qti_dynamic_partitions_a   size=689590272 (0.642 GiB)  extents=1
+  mi_ext_b           group=qti_dynamic_partitions_b   size=0 (0.000 GiB)  extents=0  (empty)
+total used by partitions: 7847768064 (7.309 GiB)

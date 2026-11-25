@@ -1,0 +1,70 @@
+log: $HOME/peridot-partition-data/logs/part_resize_20261125_054626.log
+
+== 1. the ROM package
+ROM images: <download-folder>/peridot_in_global_images_OS3.0.303.0.WNPINXM_16.0/images
+  OK    super.img present (7.3G)
+  OK    userdata.img present (1.1G)
+  OK    rawprogram0.xml present (partition layout of this ROM)
+  OK    anti-rollback value of this ROM: 1
+    image            : super.img  (sparse, logical size 9126805504 (8.500 GiB))
+    LP metadata      : v10.2, 3 slots, 6 valid copies, Virtual A/B flag: True
+    super device     : 9126805504 (8.500 GiB) in this ROM
+      group qti_dynamic_partitions_a   used  7.309 GiB   limit 8.490 GiB
+      group qti_dynamic_partitions_b   used  0.000 GiB   limit 8.490 GiB
+    used by partitions: 7847768064 (7.309 GiB)   (largest single slot: 7.309 GiB)
+    free in this ROM's super: 1.190 GiB
+    minimum possible : 7848816640 (7.310 GiB)
+    suggested size   : 10 GiB  (ROM + 30 % headroom, whole GiB, not below today's size)
+    VERDICT          : OK, this image can be resized
+    requested size   : 12.0 GiB -> OK
+    VERDICT          : OK, this image can be resized
+  OK    disk space
+
+== 2. --reflash-only: the phone must be in the bootloader
+  OK    'super' partition is exactly 12 GiB
+
+== building the 12 GiB super image from this ROM (about 1-2 minutes)
+resized: 9126805504 -> 12884901888 bytes; patched 6 metadata copies; group overhead kept at 10485760
+verify OK: 6 metadata copies valid, super size = 12884901888 bytes (12.0 GiB), partition table identical to the original
+  OK    anti-rollback ok (phone 1, ROM 1)
+Warning: skip copying super image avb footer due to sparse image.
+Sending sparse 'super' 1/11 (742216 KB)            OKAY [ 21.980s]
+Writing 'super'                                    OKAY [  0.006s]
+Sending sparse 'super' 2/11 (720896 KB)            OKAY [ 22.318s]
+Writing 'super'                                    OKAY [  0.010s]
+Sending sparse 'super' 3/11 (729456 KB)            OKAY [ 21.677s]
+Writing 'super'                                    OKAY [  0.004s]
+Sending sparse 'super' 4/11 (720896 KB)            OKAY [ 22.629s]
+Writing 'super'                                    OKAY [  0.002s]
+Sending sparse 'super' 5/11 (720896 KB)            OKAY [ 21.740s]
+Writing 'super'                                    OKAY [  0.003s]
+Sending sparse 'super' 6/11 (762072 KB)            OKAY [ 21.700s]
+Writing 'super'                                    OKAY [  0.002s]
+Sending sparse 'super' 7/11 (720896 KB)            OKAY [ 23.170s]
+Writing 'super'                                    OKAY [  0.012s]
+Sending sparse 'super' 8/11 (774816 KB)            OKAY [ 24.954s]
+Writing 'super'                                    OKAY [  0.016s]
+Sending sparse 'super' 9/11 (759060 KB)            OKAY [ 23.872s]
+Writing 'super'                                    OKAY [  0.019s]
+Sending sparse 'super' 10/11 (775652 KB)           OKAY [ 21.578s]
+Writing 'super'                                    OKAY [  0.005s]
+Sending sparse 'super' 11/11 (214676 KB)           OKAY [  6.494s]
+Writing 'super'                                    OKAY [  0.007s]
+Finished. Total time: 232.338s
+Erasing 'metadata'                                 OKAY [  0.006s]
+Finished. Total time: 0.054s
+Warning: skip copying userdata image avb footer due to sparse image.
+Sending sparse 'userdata' 1/2 (740288 KB)          OKAY [ 20.301s]
+Writing 'userdata'                                 OKAY [  0.005s]
+Sending sparse 'userdata' 2/2 (356376 KB)          OKAY [  9.766s]
+Writing 'userdata'                                 OKAY [  0.006s]
+Finished. Total time: 30.116s
+Rebooting                                          OKAY [  0.050s]
+Finished. Total time: 0.050s
+
+== waiting for Android (the first boot after a wipe can take several minutes)
+  OK    Android is up
+
+(adb is not root here: cannot run lpdump; check storage in Settings)
+
+Done. Log: $HOME/peridot-partition-data/logs/part_resize_20261125_054626.log

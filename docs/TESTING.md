@@ -33,6 +33,8 @@ Honesty table, so nobody has to guess. Phone: one POCO F6 (peridot), factory eng
 7. Bootloader only: `part_resize.sh --factory <ROM> --super-gib <N> --reflash-only` (dry run, then `--execute`).
 
 
+The raw logs behind every row of this table are in [`evidence/2026-11-25/`](../evidence/2026-11-25/README.md).
+
 ## Bugs the real tests found (all fixed)
 
 | Found by | Bug | Fix |

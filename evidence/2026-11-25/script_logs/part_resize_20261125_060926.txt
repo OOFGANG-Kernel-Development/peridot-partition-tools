@@ -1,0 +1,51 @@
+log: $HOME/peridot-partition-data/logs/part_resize_20261125_060926.log
+
+== 1. the ROM package
+ROM images: <download-folder>/peridot_factory_images_FACTORY-PERIDOT-24.4.17_14.0/images
+  OK    super.img present (3.9G)
+  OK    userdata.img present (3.8M)
+  OK    rawprogram0.xml present (partition layout of this ROM)
+  OK    anti-rollback value of this ROM: 1
+    image            : super.img  (sparse, logical size 9126805504 (8.500 GiB))
+    LP metadata      : v10.2, 3 slots, 6 valid copies, Virtual A/B flag: True
+    super device     : 9126805504 (8.500 GiB) in this ROM
+      group qti_dynamic_partitions_a   used  3.862 GiB   limit 8.490 GiB
+      group qti_dynamic_partitions_b   used  0.000 GiB   limit 8.490 GiB
+    used by partitions: 4146737152 (3.862 GiB)   (largest single slot: 3.862 GiB)
+    free in this ROM's super: 4.637 GiB
+    minimum possible : 4147785728 (3.863 GiB)
+    suggested size   : 9 GiB  (ROM + 30 % headroom, whole GiB, not below today's size)
+    VERDICT          : OK, this image can be resized
+    requested size   : 14.0 GiB -> OK
+    VERDICT          : OK, this image can be resized
+  OK    disk space
+
+== 2. the phone
+  OK    phone is in recovery
+  OK    root adb
+  OK    device: peridotperidot
+  OK    battery 97 %
+  OK    'super' lives on /dev/block/sda
+disk: 236 GiB (61949952 sectors of 4096 bytes); userdata fills the rest of the disk
+live table: super #30 sectors 208896..3354623 (12 GiB), userdata #31 3354624..61949946
+  OK    layout understood; new layout: super 14 GiB = sectors 208896..3878911, userdata 3878912..61949946 (221 GiB)
+  WARN  the ROM's rawprogram0.xml puts super at 208896 and userdata at 2437120; the phone has 208896 / 3354624 (expected if you already resized)
+
+== 3. backup of the partition tables
+  OK    backup 20261125_0609 exists in two places and equals the live table
+
+== 4. does the ROM match the phone?
+    DIFFERENT: the ROM does not look like the one installed on the phone
+      mi_ext_a: phone=689590272 rom=None
+      odm_a: phone=1915412480 rom=1338609664
+      product_a: phone=3420237824 rom=230072320
+      system_a: phone=716955648 rom=820998144
+      system_ext_a: phone=630312960 rom=334843904
+      vendor_a: phone=430030848 rom=1374302208
+
+ERROR: this ROM differs from the one installed. Only super/userdata would be replaced; the firmware and boot images would NOT match and the phone will not boot. Flash the whole ROM first with its own flash_all script (NOT the _lock one), then use --reflash-only. (Override: --allow-rom-mismatch)
+(log: $HOME/peridot-partition-data/logs/part_resize_20261125_060926.log)
+
+--- where things stand ---
+Nothing was changed on the phone.
+Log: $HOME/peridot-partition-data/logs/part_resize_20261125_060926.log
