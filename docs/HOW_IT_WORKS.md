@@ -52,7 +52,7 @@ what the ROM really needs and prints it, for example for the two tested ROMs:
 | ROM | partitions in `super` | used by slot `_a` | free in its own 8.5 GiB | suggested size |
 |---|---|---|---|---|
 | factory engineering ROM (Android 14) | 14 | 3.9 GiB | 4.6 GiB | 9 GiB |
-| retail HyperOS global `OS3.0.303.0.WNPINXM` (package label 16.0) | 16 (adds `mi_ext_a`) | 7.3 GiB | 1.2 GiB | 10 GiB |
+| retail HyperOS `OS3.0.303.0.WNPINXM` (Android 16) (package label 16.0) | 16 (adds `mi_ext_a`) | 7.3 GiB | 1.2 GiB | 10 GiB |
 
 The suggestion is `used + 30 %`, at least 1 GiB above what the partitions need, never below today's size, rounded up to a whole GiB. On a **Virtual A/B** phone like peridot only slot `_a` holds data (the `_b` partitions are 0 bytes);
 OTA updates keep their snapshot data in `userdata`, so `super` does not have to be twice the ROM.

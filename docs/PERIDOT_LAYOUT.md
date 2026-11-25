@@ -39,7 +39,7 @@ Your phone's numbers may differ if it runs a different ROM/firmware build; the s
 
 Both packages define the same 33 partitions on `sda` (identical positions and sizes); only their `super.img` content differs. Sizes are the bytes of each logical partition in slot `_a`:
 
-| partition | factory engineering ROM (Android 14) | retail HyperOS global `OS3.0.303.0.WNPINXM` (package label 16.0) |
+| partition | factory engineering ROM (Android 14) | retail HyperOS `OS3.0.303.0.WNPINXM` (Android 16) |
 |---|---|---|
 | `odm_a` | in 14 partitions, 3.862 GiB total | 1.784 GiB |
 | `product_a` | | 3.185 GiB |

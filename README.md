@@ -59,7 +59,7 @@ Two kinds of packages work, because they have the same structure and the same pa
 
 | | Factory / engineering images | Retail **Fastboot ROM** (`.tgz`) |
 |---|---|---|
-| Example (tested) | `peridot_factory_images_FACTORY-PERIDOT-24.4.17_14.0` (Android 14, userdebug) | `peridot_in_global_images_OS3.0.303.0.WNPINXM_16.0` (retail HyperOS global build `OS3.0.303.0.WNPINXM`, package label "16.0") |
+| Example (tested) | `peridot_factory_images_FACTORY-PERIDOT-24.4.17_14.0` (Android 14, userdebug) | `peridot_in_global_images_OS3.0.303.0.WNPINXM_16.0` (HyperOS `OS3.0.303.0.WNPINXM`, Android 16 / sdk 36, global; kernel `6.1.138-android14-11`) |
 | Contains | `images/super.img`, `userdata.img`, `rawprogram*.xml`, `patch*.xml`, `gpt_*.bin`, `flash_all.bat/.sh` | the same files |
 | `super` content | 14 partitions, **3.9 GiB** used | 16 partitions (adds `mi_ext_a`), **7.3 GiB** used |
 | Partition layout on `sda` | all 33 partitions identical in position and size; `super` = 8.5 GiB at sector 208896 | identical |
@@ -148,7 +148,7 @@ If the table is still the small original one and you only have a retail ROM (no 
 
 The tool computes it for you: `rom_check.sh` / `lp_resize.py check` print, for **your** ROM,
 what each slot uses, how much the image holds, the minimum possible size and the suggestion (`ROM + 30 %`, rounded up to whole GiB, never below today's size).
-Examples from the two tested ROMs: engineering ROM uses 3.9 GiB (suggest 9 GiB); HyperOS `OS3.0.303.0.WNPINXM` uses 7.3 GiB (suggest 10 GiB).
+Examples from the two tested ROMs: engineering ROM uses 3.9 GiB (suggest 9 GiB); HyperOS (Android 16) uses 7.3 GiB (suggest 10 GiB).
 Remember the extra space is taken from `userdata`. On a Virtual A/B phone (this one) only slot `_a` holds data; slot `_b` is empty, OTA updates stage their data in `userdata`.
 
 ## Limits and what is checked
